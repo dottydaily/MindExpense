@@ -1,7 +1,8 @@
 package com.purkt.mindexpense.expense.presentation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -12,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.purkt.commonui.presentation.button.ui.component.AddButton
+import com.purkt.commonui.presentation.button.ui.theme.MindExpenseTheme
 import com.purkt.mindexpense.expense.domain.model.state.ExpenseCardInfoState
 import java.text.DecimalFormat
 import java.time.LocalDateTime
@@ -19,13 +22,48 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Composable
-fun ExpenseScreenPage() {
-    Column(
+fun ExpenseScreenPage(
+    cardInfoList: List<ExpenseCardInfoState>
+) {
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .background(MaterialTheme.colors.background)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            val totalAmount = DecimalFormat("#,##0.00").format(cardInfoList.sumOf { it.amount })
+            val currency = cardInfoList.firstOrNull()?.currency?.currencyCode ?: ""
+            Text(
+                modifier = Modifier
+                    .padding(
+                        vertical = 16.dp
+                    )
+                    .align(Alignment.CenterHorizontally),
+                text = "$totalAmount $currency",
+                color = MaterialTheme.colors.primary,
+                style = MaterialTheme.typography.h4,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(cardInfoList) {
+                    ExpenseCardInfo(state = it)
+                }
+            }
+            AddButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Add new expense"
+            )
+        }
     }
 }
 
@@ -59,11 +97,11 @@ private fun ExpenseCardInfo(state: ExpenseCardInfoState) {
                     horizontalAlignment = Alignment.End
                 ) {
                     val amountFormatted = DecimalFormat("#,##0.00").format(state.amount)
-                    val amountString = state.currency.symbol
+                    val currencyDisplayName = state.currency.currencyCode
                     val dateTimeFormatter = DateTimeFormatter.ofPattern("MMM, dd, yyyy HH:mm")
                     val dateTimeString = dateTimeFormatter.format(state.dateTime)
                     Text(
-                        text = "$amountString$amountFormatted",
+                        text = "$amountFormatted $currencyDisplayName",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -99,10 +137,36 @@ private fun ExpenseCardInfo(state: ExpenseCardInfoState) {
     }
 }
 
-// @Preview
+@Preview
 @Composable
 private fun PreviewExpenseScreenPage() {
-    ExpenseScreenPage()
+    val data = listOf(
+        ExpenseCardInfoState(
+            title = "Lunch",
+            description = "Eat lunch with friend at the mall",
+            amount = 699.00,
+            currency = Currency.getInstance("THB"),
+            dateTime = LocalDateTime.now(),
+            isExpanded = false
+        ),
+        ExpenseCardInfoState(
+            title = "Lunch",
+            description = "Eat lunch with friend at the mall",
+            amount = 699.00,
+            currency = Currency.getInstance("THB"),
+            dateTime = LocalDateTime.now(),
+            isExpanded = false
+        ),
+        ExpenseCardInfoState(
+            title = "Lunch",
+            description = "Eat lunch with friend at the mall",
+            amount = 699.00,
+            currency = Currency.getInstance("THB"),
+            dateTime = LocalDateTime.now(),
+            isExpanded = false
+        )
+    )
+    ExpenseScreenPage(data)
 }
 
 @Preview
@@ -116,5 +180,7 @@ private fun PreviewExpenseCardInfoCollapse() {
         dateTime = LocalDateTime.now(),
         isExpanded = false
     )
-    ExpenseCardInfo(state = state)
+    MindExpenseTheme {
+        ExpenseCardInfo(state = state)
+    }
 }

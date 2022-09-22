@@ -1,4 +1,4 @@
-package com.purkt.commonui.presentation.button
+package com.purkt.commonui.presentation.button.ui.component
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
