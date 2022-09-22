@@ -22,8 +22,9 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Composable
-fun ExpenseScreenPage(
-    cardInfoList: List<ExpenseCardInfoState>
+fun ExpenseListPage(
+    cardInfoList: List<ExpenseCardInfoState>,
+    onNavigateToAddExpensePage: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier
@@ -61,7 +62,8 @@ fun ExpenseScreenPage(
             }
             AddButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Add new expense"
+                text = "Add new expense",
+                onClick = onNavigateToAddExpensePage
             )
         }
     }
@@ -166,7 +168,7 @@ private fun PreviewExpenseScreenPage() {
             isExpanded = false
         )
     )
-    ExpenseScreenPage(data)
+    ExpenseListPage(data)
 }
 
 @Preview
