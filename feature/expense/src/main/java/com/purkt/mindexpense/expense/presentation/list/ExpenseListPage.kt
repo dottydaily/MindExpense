@@ -13,8 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.purkt.commonui.presentation.button.ui.component.AddButton
-import com.purkt.commonui.presentation.button.ui.theme.MindExpenseTheme
+import com.purkt.ui.presentation.button.ui.component.AddButton
+import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import com.purkt.mindexpense.expense.domain.model.state.ExpenseCardInfoState
 import java.text.DecimalFormat
 import java.time.LocalDateTime

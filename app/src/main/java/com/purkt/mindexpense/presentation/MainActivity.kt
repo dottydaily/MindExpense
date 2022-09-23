@@ -3,11 +3,10 @@ package com.purkt.mindexpense.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.navigation.compose.NavHost
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
-import com.purkt.commonui.presentation.button.ui.theme.MindExpenseTheme
-import com.purkt.mindexpense.expense.domain.model.screen.ExpenseRoute
-import com.purkt.mindexpense.expense.domain.model.screen.addExpenseListTopLevel
+import com.purkt.navigation.domain.model.Screen
+import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,12 +15,14 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             MindExpenseTheme {
-                NavHost(
+                val items = listOf(
+                    Screen.Expense,
+                    Screen.Setting
+                )
+                MainPage(
                     navController = navController,
-                    startDestination = ExpenseRoute.graphRoute
-                ) {
-                    addExpenseListTopLevel(navController)
-                }
+                    navigationBarItems = items
+                )
             }
         }
     }

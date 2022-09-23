@@ -15,7 +15,7 @@ dependencyResolutionManagement {
 rootProject.name = "MindExpense"
 
 include ':app'
-include ':common-ui'
-include ':expense'
-
-project(":expense").projectDir = new File("./feature/expense")
+include ':core:ui'
+include ':core:navigation'
+include ':feature:expense'
+include ':feature:setting'
