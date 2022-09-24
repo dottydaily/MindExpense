@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
 import com.purkt.ui.presentation.button.ui.component.AddButton
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.text.DecimalFormat

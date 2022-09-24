@@ -1,9 +1,15 @@
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.app.TimePickerDialog.OnTimeSetListener
+import android.widget.TimePicker
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -14,16 +20,23 @@ import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddViewM
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
 import com.purkt.ui.presentation.button.ui.component.NormalEditText
+import com.purkt.ui.presentation.button.ui.component.NumberEditText
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
+import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun ExpenseAddPage(
     viewModel: ExpenseAddViewModel = hiltViewModel(),
     navigator: ExpenseNavigator
 ) {
+    val addInfo by remember { mutableStateOf(ExpenseAddInfoState()) }
     val addExpenseStatus by viewModel.addResultStateFlow.collectAsState()
     BaseExpenseAddPage(
+        addInfo = addInfo,
         addExpenseStatus = addExpenseStatus,
+        onGetDateString = viewModel::getDateString,
+        onGetTimeString = viewModel::getTimeString,
         navigator = navigator,
         onNavigateBack = viewModel::goBackToPreviousPage,
         onClickSaveButton = viewModel::addExpense
@@ -32,7 +45,10 @@ fun ExpenseAddPage(
 
 @Composable
 private fun BaseExpenseAddPage(
+    addInfo: ExpenseAddInfoState,
     addExpenseStatus: AddExpenseStatus,
+    onGetDateString: (dayOfMonth: Int, monthValue: Int, year: Int) -> String? = { _, _, _ -> "" },
+    onGetTimeString: (hourOfDay: Int, minute: Int) -> String? = { _, _ -> "" },
     navigator: ExpenseNavigator,
     onNavigateBack: (ExpenseNavigator) -> Unit = {},
     onClickSaveButton: (ExpenseAddInfoState) -> Unit = {}
@@ -44,7 +60,6 @@ private fun BaseExpenseAddPage(
         }
         AddExpenseStatus.Start -> {}
     }
-    val addInfo by remember { mutableStateOf(ExpenseAddInfoState()) }
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -81,7 +96,7 @@ private fun BaseExpenseAddPage(
                     )
                 }
                 item {
-                    NormalEditText(
+                    NumberEditText(
                         modifier = Modifier
                             .fillMaxWidth(),
                         value = addInfo.amount,
@@ -90,22 +105,70 @@ private fun BaseExpenseAddPage(
                     )
                 }
                 item {
-                    NormalEditText(
+                    val currentContext = LocalContext.current
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        value = addInfo.date,
-                        onValueChange = { addInfo.date = it },
-                        label = stringResource(id = R.string.expense_label_date)
-                    )
+                            .fillMaxWidth()
+                            .clickable {
+                                val currentDate = LocalDate.now()
+                                DatePickerDialog(
+                                    currentContext,
+                                    { _, year, monthValue, dayOfMonth ->
+                                        val newDate = onGetDateString.invoke(
+                                            dayOfMonth,
+                                            monthValue,
+                                            year
+                                        )
+                                        if (newDate != null) {
+                                            addInfo.date = newDate
+                                        }
+                                    },
+                                    currentDate.year,
+                                    currentDate.monthValue - 1,
+                                    currentDate.dayOfMonth
+                                ).show()
+                            }
+                    ) {
+                        NormalEditText(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            value = addInfo.date,
+                            onValueChange = { addInfo.date = it },
+                            label = stringResource(id = R.string.expense_label_date),
+                            isReadOnly = true
+                        )
+                    }
                 }
                 item {
-                    NormalEditText(
+                    val currentContext = LocalContext.current
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        value = addInfo.time,
-                        onValueChange = { addInfo.time = it },
-                        label = stringResource(id = R.string.expense_label_time)
-                    )
+                            .fillMaxWidth()
+                            .clickable {
+                                val currentTime = LocalTime.now()
+                                TimePickerDialog(
+                                    currentContext,
+                                    { _, hour, minute ->
+                                        val newTime = onGetTimeString.invoke(hour, minute)
+                                        if (newTime != null) {
+                                            addInfo.time = newTime
+                                        }
+                                    },
+                                    currentTime.hour,
+                                    currentTime.minute,
+                                    false
+                                ).show()
+                            }
+                    ) {
+                        NormalEditText(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            value = addInfo.time,
+                            onValueChange = { addInfo.time = it },
+                            label = stringResource(id = R.string.expense_label_time),
+                            isReadOnly = true
+                        )
+                    }
                 }
             }
             Row(
@@ -138,8 +201,10 @@ private fun BaseExpenseAddPage(
 @Composable
 private fun PreviewExpenseAddPage() {
     val navigator = ExpenseNavigator()
+    val addInfo = ExpenseAddInfoState()
     MindExpenseTheme {
         BaseExpenseAddPage(
+            addInfo = addInfo,
             addExpenseStatus = AddExpenseStatus.Start,
             navigator = navigator
         )

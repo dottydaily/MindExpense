@@ -47,7 +47,7 @@ fun AddButton(
 
 @Preview
 @Composable
-fun PreviewAddButton() {
+private fun PreviewAddButton() {
     AddButton(
         modifier = Modifier.fillMaxWidth(),
         text = "Test button"

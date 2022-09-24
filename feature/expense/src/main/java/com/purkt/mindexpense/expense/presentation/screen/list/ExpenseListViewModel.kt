@@ -6,6 +6,7 @@ import com.purkt.common.di.IoDispatcher
 import com.purkt.database.domain.usecase.FindAllExpensesUseCase
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
 import com.purkt.mindexpense.expense.presentation.screen.ExpenseScreen
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow

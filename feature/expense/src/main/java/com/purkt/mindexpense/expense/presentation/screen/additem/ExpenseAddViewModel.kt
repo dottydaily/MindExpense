@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.LocalDateTime
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
@@ -31,8 +32,7 @@ class ExpenseAddViewModel @Inject constructor(
     fun addExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
         try {
             val amount = expenseInfo.amount.toDouble()
-            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-            val dateTime = LocalDateTime.parse("${expenseInfo.date} ${expenseInfo.time}", formatter)
+            val dateTime = expenseInfo.getLocalDateTime()
             val targetExpense = Expense(
                 id = 0,
                 title = expenseInfo.title,
@@ -55,5 +55,27 @@ class ExpenseAddViewModel @Inject constructor(
 
     fun goBackToPreviousPage(navigator: ExpenseNavigator) {
         navigator.popTo(ExpenseScreen.ListScreen)
+    }
+
+    fun getDateString(dayOfMonth: Int, monthValue: Int, year: Int): String? {
+        return try {
+            val date = LocalDate.of(year, monthValue, dayOfMonth)
+            val formatter = DateTimeFormatter.ofPattern(ExpenseAddInfoState.DATE_PATTERN)
+            formatter.format(date)
+        } catch (e: Throwable) {
+            Timber.e(e.message)
+            null
+        }
+    }
+
+    fun getTimeString(hourOfDay: Int, minute: Int): String? {
+        return try {
+            val time = LocalTime.of(hourOfDay, minute)
+            val formatter = DateTimeFormatter.ofPattern(ExpenseAddInfoState.TIME_PATTERN)
+            formatter.format(time)
+        } catch (e: Throwable) {
+            Timber.e(e.message)
+            null
+        }
     }
 }
