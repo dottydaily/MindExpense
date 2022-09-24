@@ -79,13 +79,26 @@ dependencies {
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
     // Navigation Component
     implementation "androidx.navigation:navigation-compose:$nav_version"
+    // Hilt with navigation compose
+    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
+
 
     // Room Database
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
 
+    // Coroutines - Unit Test
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
+
+    // InstantTaskExecutor - Swap background executor with the one which executes each task synchronously
+    // Use this to test LiveData
+    testImplementation "androidx.arch.core:core-testing:2.1.0"
+
+    // Mockk - Unit Test
+    testImplementation "io.mockk:mockk:$mockk_version"
 
     // UI Tests
+    androidTestImplementation "io.mockk:mockk:$mockk_version"
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.2.1'
 }

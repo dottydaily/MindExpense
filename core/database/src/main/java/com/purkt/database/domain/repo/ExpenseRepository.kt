@@ -1,13 +1,14 @@
 package com.purkt.database.domain.repo
 
 import com.purkt.database.domain.model.Expense
+import kotlinx.coroutines.flow.Flow
 
 interface ExpenseRepository {
     /**
      * Find all expenses from database.
-     * @return The list of all [Expense] from the database.
+     * @return The [Flow] of list of all [Expense] from the database.
      */
-    suspend fun findAllExpenses(): List<Expense>
+    suspend fun findAllExpenses(): Flow<List<Expense>>
 
     /**
      * Find the target expense by using its ID.

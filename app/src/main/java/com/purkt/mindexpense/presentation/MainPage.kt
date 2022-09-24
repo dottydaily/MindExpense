@@ -13,7 +13,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.purkt.mindexpense.expense.presentation.navgraph.addExpenseListTopLevel
+import com.purkt.mindexpense.expense.presentation.navigation.addExpenseListTopLevel
 import com.purkt.navigation.domain.model.Screen
 import com.purkt.setting.presentation.navgraph.addSettingTopLevel
 

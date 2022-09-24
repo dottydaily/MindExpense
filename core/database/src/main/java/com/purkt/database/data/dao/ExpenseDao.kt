@@ -7,11 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.purkt.database.data.entity.ExpenseEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
     @Query("SELECT * FROM expense")
-    fun findAll(): List<ExpenseEntity>
+    fun findAll(): Flow<List<ExpenseEntity>>
 
     @Query("SELECT * FROM expense WHERE id=:id")
     suspend fun findById(id: Int): ExpenseEntity?

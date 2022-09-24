@@ -5,18 +5,26 @@ import com.purkt.database.data.entity.ExpenseEntity
 import com.purkt.database.domain.exception.DatabaseOperationFailedException
 import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.repo.ExpenseRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
 
 class ExpenseRepositoryImpl @Inject constructor(
     private val dao: ExpenseDao
 ) : ExpenseRepository {
-    override suspend fun findAllExpenses(): List<Expense> {
-        return doDatabaseOperation(failedResult = emptyList()) {
-            val entities = dao.findAll()
-            return@doDatabaseOperation entities.map {
-                ExpenseEntity.mapToDomainModel(it)
-            }
+    override suspend fun findAllExpenses(): Flow<List<Expense>> {
+        return doDatabaseOperation(failedResult = emptyFlow()) {
+            val targetFlow = dao.findAll()
+                .transform { entities ->
+                    val targetList = entities.map {
+                        ExpenseEntity.mapToDomainModel(it)
+                    }
+                    emit(targetList)
+                }
+
+            return@doDatabaseOperation targetFlow
         }
     }
 
