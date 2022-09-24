@@ -1,2 +1,12 @@
 apply plugin: 'com.android.library'
 apply from: "../../common.gradle"
+
+android {
+    defaultConfig {
+        kapt {
+            arguments {
+                arg("room.schemaLocation", "$projectDir/core/database/schemas")
+            }
+        }
+    }
+}

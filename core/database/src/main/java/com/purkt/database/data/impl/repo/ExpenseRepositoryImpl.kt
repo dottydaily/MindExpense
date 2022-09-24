@@ -6,8 +6,9 @@ import com.purkt.database.domain.exception.DatabaseOperationFailedException
 import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.repo.ExpenseRepository
 import timber.log.Timber
+import javax.inject.Inject
 
-class ExpenseRepositoryImpl constructor(
+class ExpenseRepositoryImpl @Inject constructor(
     private val dao: ExpenseDao
 ) : ExpenseRepository {
     override suspend fun findAllExpenses(): List<Expense> {

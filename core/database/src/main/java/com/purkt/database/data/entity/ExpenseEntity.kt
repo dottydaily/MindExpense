@@ -7,7 +7,7 @@ import com.purkt.database.domain.model.Expense
 import java.time.LocalDateTime
 
 @Entity(tableName = "expense")
-class ExpenseEntity(
+data class ExpenseEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "title") val title: String = "",

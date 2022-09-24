@@ -7,7 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
 import com.purkt.navigation.domain.model.Screen
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
