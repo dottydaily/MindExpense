@@ -1,7 +1,5 @@
 import android.app.DatePickerDialog
-import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
-import android.app.TimePickerDialog.OnTimeSetListener
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,8 +24,6 @@ import com.purkt.ui.presentation.button.ui.component.NumberEditText
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.Month
-import java.util.Calendar
 
 @Composable
 fun ExpenseAddPage(
@@ -62,7 +58,7 @@ private fun BaseExpenseAddPage(
         AddExpenseStatus.Success -> {
             onNavigateBack.invoke(navigator)
         }
-        AddExpenseStatus.Start -> {}
+        AddExpenseStatus.Idle -> {}
     }
     Surface(
         modifier = Modifier
@@ -227,7 +223,7 @@ private fun PreviewExpenseAddPage() {
     MindExpenseTheme {
         BaseExpenseAddPage(
             addInfo = addInfo,
-            addExpenseStatus = AddExpenseStatus.Start,
+            addExpenseStatus = AddExpenseStatus.Idle,
             navigator = navigator
         )
     }

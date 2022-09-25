@@ -87,7 +87,7 @@ class ExpenseRepositoryImpl @Inject constructor(
                 ExpenseEntity.mapFromDomainModel(it)
             }.toTypedArray()
             val totalDeleted = dao.delete(*targetEntities)
-            if (totalDeleted == expenses.size) {
+            if (totalDeleted != expenses.size) {
                 throw DatabaseOperationFailedException(
                     operation = "deleteExpense",
                     description = "Failed to delete some target expense in the database."
@@ -104,7 +104,7 @@ class ExpenseRepositoryImpl @Inject constructor(
             val totalDeleted = dao.deleteAll()
             val totalCountAfterDelete = countAllExpense()
 
-            if (totalCountBeforeDelete == totalDeleted || totalCountAfterDelete == 0) {
+            if (totalCountBeforeDelete != totalDeleted || totalCountAfterDelete != 0) {
                 throw DatabaseOperationFailedException(
                     operation = "deleteAllExpense",
                     description = "Failed to delete all expense in the database."

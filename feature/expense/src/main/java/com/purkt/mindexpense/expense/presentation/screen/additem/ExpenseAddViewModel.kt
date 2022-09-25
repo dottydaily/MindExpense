@@ -27,7 +27,7 @@ class ExpenseAddViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val addExpenseUseCase: AddExpenseUseCase
 ) : ViewModel() {
-    private val _addStatusState = mutableStateOf<AddExpenseStatus>(AddExpenseStatus.Start)
+    private val _addStatusState = mutableStateOf<AddExpenseStatus>(AddExpenseStatus.Idle)
     val addStatusState: State<AddExpenseStatus> = _addStatusState
 
     fun addExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {

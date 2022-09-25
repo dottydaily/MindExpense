@@ -24,7 +24,8 @@ import java.util.*
 @Composable
 fun ExpenseCardInfo(
     state: ExpenseCardInfoState,
-    onExpandedCard: (ExpenseCardInfoState) -> Unit = {}
+    onExpandCard: (ExpenseCardInfoState) -> Unit = {},
+    onDeleteCard: (ExpenseCardInfoState) -> Unit = {}
 ) {
     val expense = state.expense
     val isExpanded = state.isExpanded
@@ -122,20 +123,36 @@ fun ExpenseCardInfo(
                     )
                 }
             }
-            TextButton(
-                modifier = Modifier
-                    .padding(top = 4.dp),
-                onClick = {
-                    onExpandedCard.invoke(state)
-                },
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = contentColor
-                )
-            ) {
-                val content = if (state.isExpanded) "Hide info" else "Show info"
-                Text(
-                    text = content
-                )
+            Row {
+                if (isExpanded) {
+                    TextButton(
+                        modifier = Modifier
+                            .padding(top = 4.dp),
+                        onClick = {
+                            onDeleteCard.invoke(state)
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colors.error
+                        )
+                    ) {
+                        Text(text = "Delete")
+                    }
+                }
+                TextButton(
+                    modifier = Modifier
+                        .padding(top = 4.dp),
+                    onClick = {
+                        onExpandCard.invoke(state)
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = contentColor
+                    )
+                ) {
+                    val content = if (state.isExpanded) "Hide info" else "Show info"
+                    Text(
+                        text = content
+                    )
+                }
             }
         }
     }

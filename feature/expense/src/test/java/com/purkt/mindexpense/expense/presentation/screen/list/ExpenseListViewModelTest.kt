@@ -1,9 +1,11 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
 import com.purkt.database.domain.model.Expense
+import com.purkt.database.domain.usecase.DeleteExpenseUseCase
 import com.purkt.database.domain.usecase.FindAllExpensesUseCase
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
 import com.purkt.mindexpense.expense.presentation.screen.ExpenseScreen
+import com.purkt.mindexpense.expense.presentation.screen.list.state.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -21,6 +23,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpenseListViewModelTest {
     private val findAllExpensesUseCase: FindAllExpensesUseCase = mockk()
+    private val deleteExpenseUseCase: DeleteExpenseUseCase = mockk()
     private lateinit var testDispatcher: TestDispatcher
     private lateinit var viewModel: ExpenseListViewModel
 
@@ -30,7 +33,8 @@ class ExpenseListViewModelTest {
         Dispatchers.setMain(testDispatcher)
         viewModel = ExpenseListViewModel(
             ioDispatcher = testDispatcher,
-            findAllExpensesUseCase = findAllExpensesUseCase
+            findAllExpensesUseCase = findAllExpensesUseCase,
+            deleteExpenseUseCase = deleteExpenseUseCase
         )
     }
 
@@ -139,7 +143,7 @@ class ExpenseListViewModelTest {
             // Then
             val expected = mockExpenses.map {
                 ExpenseCardInfoState(it)
-            }
+            }.sortedByDescending { it.expense.dateTime }
             val actual = viewModel.cardInfoStateFlow.value
             actual.forEachIndexed { index, expenseCardInfoState ->
                 assertEquals(expected[index].expense, expenseCardInfoState.expense)
@@ -151,5 +155,107 @@ class ExpenseListViewModelTest {
             }
             assertFalse(viewModel.loadingState.value)
         }
+    }
+
+    @Test
+    fun `Given we have a target expense to be deleted, When deleteExpense() is called and operation is succeeded, then status must be Success and cardInfoStateFlow must be updated`() {
+        runTest {
+            // Given
+            val mockExpenses = listOf(
+                Expense(id = 1),
+                Expense(id = 2)
+            )
+            val mockFlow = flow {
+                emit(mockExpenses)
+            }
+            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
+            coEvery { deleteExpenseUseCase.invoke(any()) } returns true
+
+            // When
+            viewModel.run {
+                fetchAllExpenses()
+                advanceUntilIdle()
+            }
+
+            val currentCardInfoList = viewModel.cardInfoStateFlow.value
+            val targetState = currentCardInfoList.first()
+            viewModel.deleteExpense(targetState)
+            advanceUntilIdle()
+
+            // Then
+            val actualStatus = viewModel.deleteStatusState.value
+            val actualList = viewModel.cardInfoStateFlow.value
+            assertEquals(DeleteExpenseStatus.Success, actualStatus)
+            assertNull(actualList.find { it.expense.id == targetState.expense.id })
+        }
+    }
+
+    @Test
+    fun `Given we have a target expense to be deleted, When deleteExpense() is called and operation is failed, then status must be Failed and cardInfoStateFlow must be updated`() {
+        runTest {
+            // Given
+            val mockExpenses = listOf(
+                Expense(id = 1),
+                Expense(id = 2)
+            )
+            val mockFlow = flow {
+                emit(mockExpenses)
+            }
+            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
+            coEvery { deleteExpenseUseCase.invoke(any()) } returns false
+
+            // When
+            viewModel.run {
+                fetchAllExpenses()
+                advanceUntilIdle()
+            }
+
+            val currentCardInfoList = viewModel.cardInfoStateFlow.value
+            val targetState = currentCardInfoList.first()
+            viewModel.deleteExpense(targetState)
+            advanceUntilIdle()
+
+            // Then
+            val actualStatus = viewModel.deleteStatusState.value
+            val actualList = viewModel.cardInfoStateFlow.value
+            assertEquals(DeleteExpenseStatus.Failed, actualStatus)
+            assertNotNull(actualList.find { it.expense.id == targetState.expense.id })
+        }
+    }
+
+    @Test
+    fun `Given we use expense which it isn't in the list, When deleteExpense() is called, then status must be DataNotFound and cardInfoStateFlow must be updated`() {
+        runTest {
+            // Given
+            val mockExpenses = listOf(
+                Expense(id = 1),
+                Expense(id = 2)
+            )
+            val mockFlow = flow {
+                emit(mockExpenses)
+            }
+            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
+            coEvery { deleteExpenseUseCase.invoke(any()) } returns false
+
+            // When
+            viewModel.run {
+                fetchAllExpenses()
+                advanceUntilIdle()
+            }
+
+            val targetState = ExpenseCardInfoState(Expense(id = 3))
+            viewModel.deleteExpense(targetState)
+            advanceUntilIdle()
+
+            // Then
+            val actualStatus = viewModel.deleteStatusState.value
+            assertEquals(DeleteExpenseStatus.DataNotFoundInUi, actualStatus)
+        }
+    }
+
+    @Test
+    fun `When resetDeleteStatusToIdle is called, then delete status must be IDLE`() {
+        viewModel.resetDeleteStatusToIdle()
+        assertEquals(DeleteExpenseStatus.Idle, viewModel.deleteStatusState.value)
     }
 }

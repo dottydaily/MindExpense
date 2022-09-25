@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.text.DecimalFormat
+import java.util.Currency
 
 @Composable
 fun TotalAmountBox(
@@ -23,7 +24,7 @@ fun TotalAmountBox(
     backgroundColor: Color = MaterialTheme.colors.primaryVariant,
     contentColor: Color = contentColorFor(backgroundColor)
 ) {
-    val totalAmountString = DecimalFormat("#,##0.00").format(totalAmount)
+    val totalAmountString = DecimalFormat("#,##0.##").format(totalAmount)
     Card(
         modifier = Modifier
             .then(modifier),
@@ -31,10 +32,11 @@ fun TotalAmountBox(
         backgroundColor = backgroundColor,
         contentColor = contentColor
     ) {
+        val targetCurrency = Currency.getInstance(currency.ifBlank { "THB" }).currencyCode
         Text(
             modifier = Modifier
                 .padding(16.dp),
-            text = "$totalAmountString $currency",
+            text = "$totalAmountString $targetCurrency",
             style = MaterialTheme.typography.h4,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 1
@@ -47,5 +49,13 @@ fun TotalAmountBox(
 private fun PreviewTotalAmountBox() {
     MindExpenseTheme {
         TotalAmountBox(totalAmount = 2097.0, currency = "THB")
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewTotalAmountBoxBlankCurrency() {
+    MindExpenseTheme {
+        TotalAmountBox(totalAmount = 2097.0, currency = "")
     }
 }
