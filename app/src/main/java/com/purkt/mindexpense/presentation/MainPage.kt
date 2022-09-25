@@ -24,7 +24,9 @@ fun MainPage(
 ) {
     Scaffold(
         bottomBar = {
-            BottomNavigation {
+            BottomNavigation(
+                backgroundColor = MaterialTheme.colors.primaryVariant
+            ) {
                 // When backstack is changing, then this state will tell this
                 // Bottom navigation bar to recompose again
                 val navBackStackEntry by navController.currentBackStackEntryAsState()

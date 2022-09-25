@@ -1,5 +1,8 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,7 +32,10 @@ fun ExpenseListPage(
     viewModel: ExpenseListViewModel = hiltViewModel(),
     navigator: ExpenseNavigator
 ) {
-    rememberCoroutineScope {
+    // Launch this side-effect block after the composition is completed.
+    // Use for waiting every state's transaction to be committed-
+    // -before do some process that need to reference to those states
+    LaunchedEffect(true) {
         viewModel.fetchAllExpenses()
     }
     val isLoading by viewModel.loadingState
@@ -51,6 +57,7 @@ private fun BaseExpenseListPage(
     onExpandedCard: (ExpenseCardInfoState) -> Unit = {},
     onNavigateToAddExpensePage: (ExpenseNavigator) -> Unit = {}
 ) {
+    val primaryColor = MaterialTheme.colors.primaryVariant
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,7 +66,6 @@ private fun BaseExpenseListPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
         ) {
             if (isLoading) {
                 Box(
@@ -72,44 +78,108 @@ private fun BaseExpenseListPage(
                     )
                 }
             } else {
-                val totalAmount = DecimalFormat("#,##0.00").format(cardInfoList.sumOf { it.expense.amount })
+                val totalAmount = cardInfoList.sumOf { it.expense.amount }
                 val currency = cardInfoList.firstOrNull()?.expense?.currency?.currencyCode ?: ""
-                Text(
+                Box(
                     modifier = Modifier
-                        .padding(
-                            vertical = 16.dp
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .background(
+                            color = primaryColor
                         )
-                        .align(Alignment.CenterHorizontally),
-                    text = "$totalAmount $currency",
-                    color = MaterialTheme.colors.primary,
-                    style = MaterialTheme.typography.h4,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1
-                )
+                ) {
+                    TotalAmountBox(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .align(Alignment.Center),
+                        totalAmount = totalAmount,
+                        currency = currency,
+                        backgroundColor = MaterialTheme.colors.background,
+                        contentColor = primaryColor
+                    )
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
                         .weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                     items(cardInfoList) {
                         ExpenseCardInfo(
                             state = it,
                             onExpandedCard = onExpandedCard
                         )
                     }
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter),
+                        color = Color.Gray
+                    )
+                    AddButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 24.dp,
+                                vertical = 8.dp
+                            )
+                            .align(Alignment.Center),
+                        text = "Add new expense",
+                        color = primaryColor,
+                        onClick = {
+                            onNavigateToAddExpensePage.invoke(navigator)
+                        }
+                    )
                 }
             }
-            AddButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-                text = "Add new expense",
-                onClick = {
-                    onNavigateToAddExpensePage.invoke(navigator)
-                }
-            )
         }
+    }
+}
+
+@Composable
+private fun TotalAmountBox(
+    modifier: Modifier = Modifier,
+    totalAmount: Double,
+    currency: String,
+    backgroundColor: Color = MaterialTheme.colors.primaryVariant,
+    contentColor: Color = contentColorFor(backgroundColor)
+) {
+    val totalAmountString = DecimalFormat("#,##0.00").format(totalAmount)
+    Card(
+        modifier = Modifier
+            .then(modifier),
+        shape = RoundedCornerShape(percent = 50),
+        backgroundColor = backgroundColor,
+        contentColor = contentColor
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(16.dp),
+            text = "$totalAmountString $currency",
+            style = MaterialTheme.typography.h4,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewTotalAmountBox() {
+    MindExpenseTheme {
+        TotalAmountBox(totalAmount = 2097.0, currency = "THB")
     }
 }
 
@@ -119,17 +189,52 @@ private fun ExpenseCardInfo(
     onExpandedCard: (ExpenseCardInfoState) -> Unit = {}
 ) {
     val expense = state.expense
+    val isExpanded = state.isExpanded
+    val backgroundColor = if (isExpanded) {
+        MaterialTheme.colors.surface
+    } else {
+        MaterialTheme.colors.primaryVariant
+    }
+    val contentColor = if (isExpanded) {
+        MaterialTheme.colors.primaryVariant
+    } else {
+        contentColorFor(backgroundColor)
+    }
+    val border = if (isExpanded) {
+        BorderStroke(2.dp, contentColor)
+    } else {
+        BorderStroke(0.dp, contentColor)
+    }
+    val shape = if (isExpanded) {
+        RoundedCornerShape(
+            topStart = 16.dp,
+            topEnd = 16.dp
+        )
+    } else {
+        RoundedCornerShape(16.dp)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.primary
+            .wrapContentHeight()
+            .border(
+                border = border,
+                shape = shape
+            ),
+        shape = shape,
+        backgroundColor = backgroundColor,
+        contentColor = contentColor
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(
+                    top = 16.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 8.dp
+                ),
             horizontalAlignment = Alignment.End
         ) {
             Row(
@@ -144,7 +249,8 @@ private fun ExpenseCardInfo(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Column(
-                    horizontalAlignment = Alignment.End
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     val amountFormatted = DecimalFormat("#,##0.00").format(expense.amount)
                     val currencyDisplayName = expense.currency.currencyCode
@@ -157,11 +263,12 @@ private fun ExpenseCardInfo(
                     )
                     Text(
                         text = dateTimeString,
-                        fontSize = 10.sp
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
-            if (state.isExpanded) {
+            if (isExpanded) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -173,11 +280,13 @@ private fun ExpenseCardInfo(
                 }
             }
             TextButton(
+                modifier = Modifier
+                    .padding(top = 4.dp),
                 onClick = {
                     onExpandedCard.invoke(state)
                 },
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color.White
+                    contentColor = contentColor
                 )
             ) {
                 val content = if (state.isExpanded) "Hide info" else "Show info"
@@ -199,7 +308,7 @@ private fun PreviewExpenseScreenPage() {
                 description = "Eat lunch with friend at the mall",
                 amount = 699.00,
                 currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.now(),
+                dateTime = LocalDateTime.now()
             ),
             isExpanded = false
         ),
@@ -209,7 +318,7 @@ private fun PreviewExpenseScreenPage() {
                 description = "Eat lunch with friend at the mall",
                 amount = 699.00,
                 currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.now(),
+                dateTime = LocalDateTime.now()
             ),
             isExpanded = false
         ),
@@ -219,7 +328,7 @@ private fun PreviewExpenseScreenPage() {
                 description = "Eat lunch with friend at the mall",
                 amount = 699.00,
                 currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.now(),
+                dateTime = LocalDateTime.now()
             ),
             isExpanded = false
         )
@@ -236,7 +345,7 @@ private fun PreviewExpenseCardInfoCollapse() {
             description = "Eat lunch with friend at the mall",
             amount = 699.00,
             currency = Currency.getInstance("THB"),
-            dateTime = LocalDateTime.now(),
+            dateTime = LocalDateTime.now()
         ),
         isExpanded = false
     )
@@ -254,7 +363,7 @@ private fun PreviewExpenseCardInfoExpanded() {
             description = "Eat lunch with friend at the mall",
             amount = 699.00,
             currency = Currency.getInstance("THB"),
-            dateTime = LocalDateTime.now(),
+            dateTime = LocalDateTime.now()
         ),
         isExpanded = true
     )
