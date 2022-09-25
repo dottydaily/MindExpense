@@ -1,12 +1,16 @@
 import android.app.DatePickerDialog
+import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
+import android.app.TimePickerDialog.OnTimeSetListener
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +26,8 @@ import com.purkt.ui.presentation.button.ui.component.NumberEditText
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.Month
+import java.util.Calendar
 
 @Composable
 fun ExpenseAddPage(
@@ -71,10 +77,13 @@ private fun BaseExpenseAddPage(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(horizontal = 24.dp)
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
                 item {
                     NormalEditText(
                         modifier = Modifier
@@ -111,10 +120,10 @@ private fun BaseExpenseAddPage(
                                 val currentDate = LocalDate.now()
                                 DatePickerDialog(
                                     currentContext,
-                                    { _, year, monthValue, dayOfMonth ->
+                                    { _, year, monthValueCalender, dayOfMonth ->
                                         val newDate = onGetDateString.invoke(
                                             dayOfMonth,
-                                            monthValue,
+                                            monthValueCalender,
                                             year
                                         )
                                         if (newDate != null) {
@@ -168,27 +177,42 @@ private fun BaseExpenseAddPage(
                         )
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedButton(
+                Divider(
                     modifier = Modifier
-                        .weight(1f),
-                    onClick = { onNavigateBack.invoke(navigator) },
-                    border = BorderStroke(1.dp, MaterialTheme.colors.primary)
-                ) {
-                    Text(text = stringResource(id = com.purkt.ui.R.string.back))
-                }
-                Button(
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter),
+                    color = Color.Gray,
+                )
+                Row(
                     modifier = Modifier
-                        .weight(1f),
-                    onClick = { onClickSaveButton.invoke(addInfo) }
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .align(Alignment.BottomCenter),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = stringResource(id = com.purkt.ui.R.string.save))
+                    OutlinedButton(
+                        modifier = Modifier
+                            .weight(1f),
+                        onClick = { onNavigateBack.invoke(navigator) },
+                        border = BorderStroke(1.dp, MaterialTheme.colors.primary)
+                    ) {
+                        Text(text = stringResource(id = com.purkt.ui.R.string.back))
+                    }
+                    Button(
+                        modifier = Modifier
+                            .weight(1f),
+                        onClick = { onClickSaveButton.invoke(addInfo) }
+                    ) {
+                        Text(text = stringResource(id = com.purkt.ui.R.string.save))
+                    }
                 }
             }
         }

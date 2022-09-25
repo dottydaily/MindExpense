@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.Month
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
@@ -57,9 +58,9 @@ class ExpenseAddViewModel @Inject constructor(
         navigator.popTo(ExpenseScreen.ListScreen)
     }
 
-    fun getDateString(dayOfMonth: Int, monthValue: Int, year: Int): String? {
+    fun getDateString(dayOfMonth: Int, monthValueCalendar: Int, year: Int): String? {
         return try {
-            val date = LocalDate.of(year, monthValue, dayOfMonth)
+            val date = LocalDate.of(year, Month.of(monthValueCalendar + 1), dayOfMonth)
             val formatter = DateTimeFormatter.ofPattern(ExpenseAddInfoState.DATE_PATTERN)
             formatter.format(date)
         } catch (e: Throwable) {

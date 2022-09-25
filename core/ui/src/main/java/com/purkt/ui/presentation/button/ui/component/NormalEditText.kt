@@ -77,7 +77,7 @@ private fun PreviewNormalEditText() {
 @Preview
 @Composable
 private fun PreviewNormalEditTextReadOnly() {
-    val inputState = rememberSaveable { mutableStateOf("") }
+    val inputState = rememberSaveable { mutableStateOf("This is title") }
     MindExpenseTheme {
         Surface(
             color = MaterialTheme.colors.background

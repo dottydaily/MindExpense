@@ -34,7 +34,7 @@ class ExpenseListViewModel @Inject constructor(
             .transform { expenseList ->
                 val cardInfoStateList = expenseList.map {
                     ExpenseCardInfoState(it)
-                }
+                }.sortedBy { it.expense.dateTime }.reversed()
                 emit(cardInfoStateList)
             }
             .flowOn(ioDispatcher)
