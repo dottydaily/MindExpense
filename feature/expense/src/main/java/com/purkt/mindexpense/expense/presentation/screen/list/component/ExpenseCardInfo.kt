@@ -25,7 +25,7 @@ import java.util.*
 fun ExpenseCardInfo(
     state: ExpenseCardInfoState,
     onExpandCard: (ExpenseCardInfoState) -> Unit = {},
-    onDeleteCard: (ExpenseCardInfoState) -> Unit = {}
+    onDeleteCard: () -> Unit = {}
 ) {
     val expense = state.expense
     val isExpanded = state.isExpanded
@@ -129,7 +129,7 @@ fun ExpenseCardInfo(
                         modifier = Modifier
                             .padding(top = 4.dp),
                         onClick = {
-                            onDeleteCard.invoke(state)
+                            onDeleteCard.invoke()
                         },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colors.error

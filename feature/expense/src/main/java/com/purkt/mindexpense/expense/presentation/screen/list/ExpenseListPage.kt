@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -86,6 +87,8 @@ private fun BaseExpenseListPage(
     onDeleteCard: (ExpenseCardInfoState) -> Unit = {},
     onNavigateToAddExpensePage: (ExpenseNavigator) -> Unit = {}
 ) {
+    var targetStateToDelete by remember { mutableStateOf<ExpenseCardInfoState?>(null) }
+
     val primaryColor = MaterialTheme.colors.primaryVariant
     Surface(
         modifier = Modifier
@@ -142,7 +145,9 @@ private fun BaseExpenseListPage(
                             ExpenseCardInfo(
                                 state = it,
                                 onExpandCard = onExpandCard,
-                                onDeleteCard = onDeleteCard
+                                onDeleteCard = {
+                                    targetStateToDelete = it
+                                }
                             )
                         }
                         item {
@@ -190,6 +195,40 @@ private fun BaseExpenseListPage(
                     )
                 }
             }
+        }
+
+        // Show dialog to confirm for deleting expense
+        if (targetStateToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { targetStateToDelete = null },
+                title = {
+                    Text(
+                        text = "Do you want to delete this expense?",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            targetStateToDelete?.let {
+                                onDeleteCard.invoke(it)
+                                targetStateToDelete = null
+                            }
+                        }
+                    ) {
+                        Text("Delete", color = MaterialTheme.colors.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            targetStateToDelete = null
+                        }
+                    ) {
+                        Text("Cancel", color = Color.DarkGray)
+                    }
+                }
+            )
         }
     }
 }
