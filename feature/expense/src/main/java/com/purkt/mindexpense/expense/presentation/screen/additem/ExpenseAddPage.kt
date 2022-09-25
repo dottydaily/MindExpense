@@ -1,7 +1,5 @@
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.app.TimePickerDialog.OnTimeSetListener
-import android.widget.TimePicker
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,7 +29,7 @@ fun ExpenseAddPage(
     navigator: ExpenseNavigator
 ) {
     val addInfo by remember { mutableStateOf(ExpenseAddInfoState()) }
-    val addExpenseStatus by viewModel.addResultStateFlow.collectAsState()
+    val addExpenseStatus by viewModel.addStatusState
     BaseExpenseAddPage(
         addInfo = addInfo,
         addExpenseStatus = addExpenseStatus,

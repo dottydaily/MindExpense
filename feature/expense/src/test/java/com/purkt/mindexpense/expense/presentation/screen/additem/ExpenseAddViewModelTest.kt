@@ -1,28 +1,29 @@
-package com.purkt.mindexpense.expense.presentation.additem
+package com.purkt.mindexpense.expense.presentation.screen.additem
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.purkt.common.model.Event
-import com.purkt.common.model.EventObserver
 import com.purkt.database.domain.usecase.AddExpenseUseCase
-import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddViewModel
+import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
+import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.Month
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpenseAddViewModelTest {
-    @get: Rule
-    val instantTaskExecutor = InstantTaskExecutorRule()
+    private val mockDateString = DateTimeFormatter.ofPattern(ExpenseAddInfoState.DATE_PATTERN)
+        .format(LocalDate.of(2022, Month.SEPTEMBER, 25))
+    private val mockTimeString = DateTimeFormatter.ofPattern(ExpenseAddInfoState.TIME_PATTERN)
+        .format(LocalTime.of(2, 36))
 
     private val addExpenseUseCase: AddExpenseUseCase = mockk()
     private lateinit var testDispatcher: TestDispatcher
@@ -51,24 +52,21 @@ class ExpenseAddViewModelTest {
                 title = "Mock Title"
                 description = "Mock description"
                 amount = "0.00"
-                date = "24/09/2022"
-                time = "22:22:00"
+                date = mockDateString
+                time = mockTimeString
             }
-            val addSuccessEventSlot = slot<Event<Unit>>()
-            val addSuccessEventObserverMock = mockk<EventObserver<Unit>>()
-            every { addSuccessEventObserverMock.onChanged(capture(addSuccessEventSlot)) }
 
             coEvery { addExpenseUseCase.invoke(any()) } returns true
 
             // When
             viewModel.run {
-                addSuccessEvent.observeForever(addSuccessEventObserverMock)
                 addExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
             // Then
-            assertEquals(Unit, addSuccessEventSlot.captured.peekContent())
+            val actual = viewModel.addStatusState.value
+            assertEquals(AddExpenseStatus.Success, actual)
         }
     }
 
@@ -80,24 +78,21 @@ class ExpenseAddViewModelTest {
                 title = "Mock Title"
                 description = "Mock description"
                 amount = "0.00"
-                date = "24/09/2022"
-                time = "22:22:00"
+                date = mockDateString
+                time = mockTimeString
             }
-            val addFailedEventSlot = slot<Event<Unit>>()
-            val addFailedEventObserverMock = mockk<EventObserver<Unit>>()
-            every { addFailedEventObserverMock.onChanged(capture(addFailedEventSlot)) }
 
             coEvery { addExpenseUseCase.invoke(any()) } returns false
 
             // When
             viewModel.run {
-                addFailedEvent.observeForever(addFailedEventObserverMock)
                 addExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
             // Then
-            assertEquals(Unit, addFailedEventSlot.captured.peekContent())
+            val actual = viewModel.addStatusState.value
+            assertEquals(AddExpenseStatus.Failed, actual)
         }
     }
 
@@ -109,24 +104,21 @@ class ExpenseAddViewModelTest {
                 title = "Mock Title"
                 description = "Mock description"
                 amount = "assdfasd"
-                date = "24/09/2022"
-                time = "22:22:00"
+                date = mockDateString
+                time = mockTimeString
             }
-            val addFailedEventSlot = slot<Event<Unit>>()
-            val addFailedEventObserverMock = mockk<EventObserver<Unit>>()
-            every { addFailedEventObserverMock.onChanged(capture(addFailedEventSlot)) } returns Unit
 
             coEvery { addExpenseUseCase.invoke(any()) } returns true
 
             // When
             viewModel.run {
-                addFailedEvent.observeForever(addFailedEventObserverMock)
                 addExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
             // Then
-            assertEquals(Unit, addFailedEventSlot.captured.peekContent())
+            val actual = viewModel.addStatusState.value
+            assertEquals(AddExpenseStatus.Failed, actual)
         }
     }
 
@@ -139,23 +131,20 @@ class ExpenseAddViewModelTest {
                 description = "Mock description"
                 amount = "0.00"
                 date = "asfasd;f"
-                time = "23:20:00"
+                time = mockTimeString
             }
-            val addFailedEventSlot = slot<Event<Unit>>()
-            val addFailedEventObserverMock = mockk<EventObserver<Unit>>()
-            every { addFailedEventObserverMock.onChanged(capture(addFailedEventSlot)) } returns Unit
 
             coEvery { addExpenseUseCase.invoke(any()) } returns true
 
             // When
             viewModel.run {
-                addFailedEvent.observeForever(addFailedEventObserverMock)
                 addExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
             // Then
-            assertEquals(Unit, addFailedEventSlot.captured.peekContent())
+            val actual = viewModel.addStatusState.value
+            assertEquals(AddExpenseStatus.Failed, actual)
         }
     }
 
@@ -167,24 +156,21 @@ class ExpenseAddViewModelTest {
                 title = "Mock Title"
                 description = "Mock description"
                 amount = "0.00"
-                date = "24/09/2022"
+                date = mockDateString
                 time = "asdfasdf"
             }
-            val addFailedEventSlot = slot<Event<Unit>>()
-            val addFailedEventObserverMock = mockk<EventObserver<Unit>>()
-            every { addFailedEventObserverMock.onChanged(capture(addFailedEventSlot)) } returns Unit
 
             coEvery { addExpenseUseCase.invoke(any()) } returns true
 
             // When
             viewModel.run {
-                addFailedEvent.observeForever(addFailedEventObserverMock)
                 addExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
             // Then
-            assertEquals(Unit, addFailedEventSlot.captured.peekContent())
+            val actual = viewModel.addStatusState.value
+            assertEquals(AddExpenseStatus.Failed, actual)
         }
     }
 }

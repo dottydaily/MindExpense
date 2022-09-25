@@ -1,5 +1,7 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
@@ -21,8 +23,8 @@ class ExpenseListViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val findAllExpensesUseCase: FindAllExpensesUseCase
 ) : ViewModel() {
-    private val _loadingStateFlow = MutableStateFlow(true)
-    val loadingStateFlow: StateFlow<Boolean> = _loadingStateFlow
+    private val _loadingStateFlow = mutableStateOf(true)
+    val loadingState: State<Boolean> = _loadingStateFlow
 
     private val _cardInfoStateFlow = MutableStateFlow<List<ExpenseCardInfoState>>(emptyList())
     val cardInfoStateFlow: StateFlow<List<ExpenseCardInfoState>> = _cardInfoStateFlow
@@ -31,7 +33,7 @@ class ExpenseListViewModel @Inject constructor(
         findAllExpensesUseCase.invoke()
             .transform { expenseList ->
                 val cardInfoStateList = expenseList.map {
-                    ExpenseCardInfoState.mapFromDomain(it)
+                    ExpenseCardInfoState(it)
                 }
                 emit(cardInfoStateList)
             }
@@ -46,9 +48,9 @@ class ExpenseListViewModel @Inject constructor(
         navigator.navigateTo(ExpenseScreen.AddScreen)
     }
 
-    fun setExpandedCardInfoState(state: ExpenseCardInfoState) {
+    fun changeCardInfoExpandedState(state: ExpenseCardInfoState) {
         val newList = _cardInfoStateFlow.value.map {
-            if (it.id == state.id) {
+            if (it.expense.id == state.expense.id) {
                 it.isExpanded = !it.isExpanded
             }
             it

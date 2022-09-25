@@ -1,5 +1,7 @@
 package com.purkt.mindexpense.expense.presentation.screen.additem
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
@@ -11,8 +13,6 @@ import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpens
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDate
@@ -26,8 +26,8 @@ class ExpenseAddViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val addExpenseUseCase: AddExpenseUseCase
 ) : ViewModel() {
-    private val _addResultStateFlow = MutableStateFlow<AddExpenseStatus>(AddExpenseStatus.Start)
-    val addResultStateFlow: StateFlow<AddExpenseStatus> = _addResultStateFlow
+    private val _addStatusState = mutableStateOf<AddExpenseStatus>(AddExpenseStatus.Start)
+    val addStatusState: State<AddExpenseStatus> = _addStatusState
 
     fun addExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
         try {
@@ -46,10 +46,10 @@ class ExpenseAddViewModel @Inject constructor(
             if (!isAdded) {
                 throw Exception("Can't add expense info to database")
             }
-            _addResultStateFlow.value = AddExpenseStatus.Success
+            _addStatusState.value = AddExpenseStatus.Success
         } catch (e: Exception) {
             Timber.e(e.message)
-            _addResultStateFlow.value = AddExpenseStatus.Failed
+            _addStatusState.value = AddExpenseStatus.Failed
         }
     }
 
