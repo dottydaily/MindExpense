@@ -13,9 +13,11 @@ class ExpenseAddInfoState {
     }
     var title: String by mutableStateOf("")
     var description: String by mutableStateOf("")
-    var amount: String by mutableStateOf("0.00")
+    var amount: String by mutableStateOf("0")
     var date: String by mutableStateOf("")
     var time: String by mutableStateOf("")
+    var isTitleInvalid = mutableStateOf(false)
+    var isAmountInvalid = mutableStateOf(false)
 
     init {
         val dateTime = LocalDateTime.now()

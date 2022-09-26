@@ -19,7 +19,8 @@ fun NumberEditText(
     value: String,
     onValueChange: (String) -> Unit,
     label: String = "",
-    placeholder: String = ""
+    placeholder: String = "",
+    isError: Boolean = false
 ) {
     OutlinedTextField(
         modifier = Modifier
@@ -37,7 +38,13 @@ fun NumberEditText(
         },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Decimal
-        )
+        ),
+        isError = isError,
+        colors = if (isError) {
+            TextFieldDefaults.outlinedTextFieldColors(
+                textColor = MaterialTheme.colors.error
+            )
+        } else TextFieldDefaults.outlinedTextFieldColors()
     )
 }
 
@@ -55,6 +62,26 @@ private fun PreviewNumberEditText() {
                 onValueChange = { inputState.value += it },
                 label = "Amount",
                 placeholder = "Enter your expense's amount"
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewNumberEditTextError() {
+    val inputState = rememberSaveable { mutableStateOf("0.00") }
+    MindExpenseTheme {
+        Surface(
+            color = MaterialTheme.colors.background
+        ) {
+            NumberEditText(
+                modifier = Modifier.padding(8.dp),
+                value = inputState.value,
+                onValueChange = { inputState.value += it },
+                label = "Amount",
+                placeholder = "Enter your expense's amount",
+                isError = true
             )
         }
     }

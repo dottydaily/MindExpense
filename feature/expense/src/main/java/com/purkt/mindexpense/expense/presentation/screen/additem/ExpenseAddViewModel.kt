@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.usecase.AddExpenseUseCase
+import com.purkt.mindexpense.expense.domain.model.ExpenseForm
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
 import com.purkt.mindexpense.expense.presentation.screen.ExpenseScreen
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
@@ -33,15 +33,24 @@ class ExpenseAddViewModel @Inject constructor(
     fun addExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
         try {
             val amount = expenseInfo.amount.toDouble()
-            val dateTime = expenseInfo.getLocalDateTime()
-            val targetExpense = Expense(
+            val form = ExpenseForm(
                 id = 0,
                 title = expenseInfo.title,
                 description = expenseInfo.description,
                 amount = amount,
                 currency = Currency.getInstance("THB"),
-                dateTime = dateTime
-            )
+                date = expenseInfo.getLocalDateTime().toLocalDate(),
+                time = expenseInfo.getLocalDateTime().toLocalTime()
+            ).apply {
+                if (!isTitleValid()) {
+                    expenseInfo.isTitleInvalid.value = true
+                }
+                if (!isAmountValid()) {
+                    expenseInfo.isAmountInvalid.value = true
+                }
+            }
+            val targetExpense = form.createExpenseOrNull()
+                ?: throw Exception("Invalid expense data")
             val isAdded = addExpenseUseCase.invoke(targetExpense)
 
             if (!isAdded) {

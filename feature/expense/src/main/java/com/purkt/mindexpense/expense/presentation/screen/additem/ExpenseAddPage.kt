@@ -2,6 +2,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
@@ -10,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.purkt.mindexpense.expense.R
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
@@ -53,6 +56,7 @@ private fun BaseExpenseAddPage(
     onNavigateBack: (ExpenseNavigator) -> Unit = {},
     onClickSaveButton: (ExpenseAddInfoState) -> Unit = {}
 ) {
+    val focusManager = LocalFocusManager.current
     when (addExpenseStatus) {
         AddExpenseStatus.Failed -> {}
         AddExpenseStatus.Success -> {
@@ -60,9 +64,20 @@ private fun BaseExpenseAddPage(
         }
         AddExpenseStatus.Idle -> {}
     }
+    LaunchedEffect(key1 = addInfo.title) {
+        addInfo.isTitleInvalid.value = false
+    }
+    LaunchedEffect(key1 = addInfo.amount) {
+        addInfo.isAmountInvalid.value = false
+    }
     Surface(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .clickable(
+                interactionSource = MutableInteractionSource(),
+                indication = null,
+                onClick = { focusManager.clearFocus() }
+            ),
         color = MaterialTheme.colors.background
     ) {
         Column(
@@ -86,8 +101,18 @@ private fun BaseExpenseAddPage(
                             .fillMaxWidth(),
                         value = addInfo.title,
                         onValueChange = { addInfo.title = it },
-                        label = stringResource(id = R.string.expense_label_title)
+                        label = stringResource(id = R.string.expense_label_title),
+                        isError = addInfo.isTitleInvalid.value
                     )
+                }
+                if (addInfo.isTitleInvalid.value) {
+                    item {
+                        Text(
+                            text = "Title must have at least 1 character and must be trimmed.",
+                            color = MaterialTheme.colors.error,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
                 item {
                     NormalEditText(
@@ -104,8 +129,18 @@ private fun BaseExpenseAddPage(
                             .fillMaxWidth(),
                         value = addInfo.amount,
                         onValueChange = { addInfo.amount = it },
-                        label = stringResource(id = R.string.expense_label_amount)
+                        label = stringResource(id = R.string.expense_label_amount),
+                        isError = addInfo.isAmountInvalid.value
                     )
+                }
+                if (addInfo.isAmountInvalid.value) {
+                    item {
+                        Text(
+                            text = "Amount must be greater than zero.",
+                            color = MaterialTheme.colors.error,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
                 item {
                     val currentContext = LocalContext.current
@@ -185,7 +220,7 @@ private fun BaseExpenseAddPage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter),
-                    color = Color.Gray,
+                    color = Color.Gray
                 )
                 Row(
                     modifier = Modifier
@@ -220,6 +255,23 @@ private fun BaseExpenseAddPage(
 private fun PreviewExpenseAddPage() {
     val navigator = ExpenseNavigator()
     val addInfo = ExpenseAddInfoState()
+    MindExpenseTheme {
+        BaseExpenseAddPage(
+            addInfo = addInfo,
+            addExpenseStatus = AddExpenseStatus.Idle,
+            navigator = navigator
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewExpenseAddPageShowError() {
+    val navigator = ExpenseNavigator()
+    val addInfo = ExpenseAddInfoState().apply {
+        isTitleInvalid.value = true
+        isAmountInvalid.value = true
+    }
     MindExpenseTheme {
         BaseExpenseAddPage(
             addInfo = addInfo,

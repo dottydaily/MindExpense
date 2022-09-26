@@ -20,13 +20,18 @@ fun NormalEditText(
     onValueChange: (String) -> Unit,
     label: String = "",
     placeholder: String = "",
-    isReadOnly: Boolean = false
+    isReadOnly: Boolean = false,
+    isError: Boolean = false
 ) {
-    val baseColors = TextFieldDefaults.outlinedTextFieldColors()
+    val baseColors = if (isError) {
+        TextFieldDefaults.outlinedTextFieldColors(
+            textColor = MaterialTheme.colors.error
+        )
+    } else TextFieldDefaults.outlinedTextFieldColors()
     val interactionSource = remember { MutableInteractionSource() }
     val baseLabelColor = baseColors.labelColor(
         enabled = true,
-        error = false,
+        error = isError,
         interactionSource = interactionSource
     ).value
     val readOnlyColors = TextFieldDefaults.outlinedTextFieldColors(
@@ -51,7 +56,8 @@ fun NormalEditText(
         },
         readOnly = isReadOnly,
         enabled = !isReadOnly,
-        colors = if (isReadOnly) readOnlyColors else baseColors
+        colors = if (isReadOnly) readOnlyColors else baseColors,
+        isError = isError
     )
 }
 
@@ -89,6 +95,26 @@ private fun PreviewNormalEditTextReadOnly() {
                 label = "Title",
                 placeholder = "Enter your expense's title",
                 isReadOnly = true
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewNormalEditTextError() {
+    val inputState = rememberSaveable { mutableStateOf("This is title") }
+    MindExpenseTheme {
+        Surface(
+            color = MaterialTheme.colors.background
+        ) {
+            NormalEditText(
+                modifier = Modifier.padding(8.dp),
+                value = inputState.value,
+                onValueChange = { inputState.value += it },
+                label = "Title",
+                placeholder = "Enter your expense's title",
+                isError = true
             )
         }
     }
