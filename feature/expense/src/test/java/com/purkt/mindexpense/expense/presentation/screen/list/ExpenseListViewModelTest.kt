@@ -5,7 +5,7 @@ import com.purkt.database.domain.usecase.DeleteExpenseUseCase
 import com.purkt.database.domain.usecase.FindAllExpensesUseCase
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
 import com.purkt.mindexpense.expense.presentation.screen.ExpenseScreen
-import com.purkt.mindexpense.expense.presentation.screen.list.state.DeleteExpenseStatus
+import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
 import io.mockk.coEvery
 import io.mockk.mockk

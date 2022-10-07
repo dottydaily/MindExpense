@@ -5,12 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
+import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.usecase.DeleteExpenseUseCase
 import com.purkt.database.domain.usecase.FindAllExpensesUseCase
+import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
 import com.purkt.mindexpense.expense.presentation.screen.ExpenseScreen
-import com.purkt.mindexpense.expense.presentation.screen.list.state.DeleteExpenseStatus
-import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,8 +28,10 @@ class ExpenseListViewModel @Inject constructor(
     private val deleteExpenseUseCase: DeleteExpenseUseCase
 ) : ViewModel() {
     private val _loadingStateFlow = mutableStateOf(true)
+    private val _cardItemsStateFlow = MutableStateFlow<List<ExpenseInfoItem>>(emptyList())
     private val _deleteStatusState = mutableStateOf<DeleteExpenseStatus>(DeleteExpenseStatus.Idle)
-    private val _cardInfoStateFlow = MutableStateFlow<List<ExpenseCardInfoState>>(emptyList())
+    private val _totalAmountState = mutableStateOf(0.0)
+    private val _totalCurrencyState = mutableStateOf("")
 
     /**
      * A State of loading status of this page.
@@ -36,14 +39,24 @@ class ExpenseListViewModel @Inject constructor(
     val loadingState: State<Boolean> = _loadingStateFlow
 
     /**
+     * A State of the list of [ExpenseInfoItem] to show in UI.
+     */
+    val cardInfoStateFlow: StateFlow<List<ExpenseInfoItem>> = _cardItemsStateFlow
+
+    /**
      * A State of delete status.
      */
     val deleteStatusState: State<DeleteExpenseStatus> = _deleteStatusState
 
     /**
-     * A State of the list of [ExpenseCardInfoState] to be used to show in UI.
+     * A State of the total amount of all expenses.
      */
-    val cardInfoStateFlow: StateFlow<List<ExpenseCardInfoState>> = _cardInfoStateFlow
+    val totalAmountState: State<Double> = _totalAmountState
+
+    /**
+     * A State of the total amount's currency string.
+     */
+    val totalCurrencyStringState: State<String> = _totalCurrencyState
 
     /**
      * Start fetching all expense data from database.
@@ -52,15 +65,16 @@ class ExpenseListViewModel @Inject constructor(
      */
     fun fetchAllExpenses() = viewModelScope.launch(ioDispatcher) {
         findAllExpensesUseCase.invoke()
-            .transform { expenseList ->
-                val cardInfoStateList = expenseList.map {
-                    ExpenseCardInfoState(it)
-                }.sortedByDescending { it.expense.dateTime }
-                emit(cardInfoStateList)
+            .transform { expenseListFromDb ->
+                val expenseGroupedByDate = mapToExpenseItemInfo(expenseListFromDb)
+                emit(expenseGroupedByDate)
             }
             .flowOn(ioDispatcher)
             .collect {
-                _cardInfoStateFlow.value = it
+                val cardDetails = it.filterIsInstance<ExpenseInfoItem.ExpenseCardDetail>()
+                _totalAmountState.value = cardDetails.sumOf { detail -> detail.expense.amount }
+                _totalCurrencyState.value = cardDetails.firstOrNull()?.expense?.currency?.currencyCode ?: ""
+                _cardItemsStateFlow.value = it
                 if (_loadingStateFlow.value) _loadingStateFlow.value = false
             }
     }
@@ -74,41 +88,25 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     /**
-     * Set flag to expand or collapse the card info depends on its current expanded status.
-     *
-     * This method will trigger update on [cardInfoStateFlow].
-     *
-     * @param state The target state which it need to set flag to show/hide card info.
-     */
-    fun changeCardInfoExpandedState(state: ExpenseCardInfoState) {
-        val newList = _cardInfoStateFlow.value.map {
-            if (it.expense.id == state.expense.id) {
-                it.isExpanded = !it.isExpanded
-            }
-            it
-        }
-
-        _cardInfoStateFlow.value = newList
-    }
-
-    /**
      * Delete the target expense from database and UI.
      *
      * This method will trigger update on [cardInfoStateFlow] and [deleteStatusState]
      *
-     * @param state The target state which it has a target expense to be deleted.
+     * @param item The target item which it has a target expense to be deleted.
      */
-    fun deleteExpense(state: ExpenseCardInfoState) = viewModelScope.launch(ioDispatcher) {
-        val targetExpenseInfo = _cardInfoStateFlow.value.find { it.expense == state.expense }
+    fun deleteExpense(item: ExpenseInfoItem.ExpenseCardDetail) = viewModelScope.launch(ioDispatcher) {
+        val targetExpenseInfo = _cardItemsStateFlow.value
+            .filterIsInstance<ExpenseInfoItem.ExpenseCardDetail>()
+            .find { it.expense.id == item.expense.id }
         if (targetExpenseInfo == null) {
             _deleteStatusState.value = DeleteExpenseStatus.DataNotFoundInUi
         } else {
             val isDeleted = deleteExpenseUseCase.invoke(targetExpenseInfo.expense)
             if (isDeleted) {
-                val newList = _cardInfoStateFlow.value.toMutableList().apply {
-                    removeIf { it.expense == state.expense }
+                val newList = _cardItemsStateFlow.value.toMutableList().apply {
+                    removeIf { it is ExpenseInfoItem.ExpenseCardDetail && it.expense.id == item.expense.id }
                 }
-                _cardInfoStateFlow.value = newList
+                _cardItemsStateFlow.value = newList
                 _deleteStatusState.value = DeleteExpenseStatus.Success
             } else {
                 _deleteStatusState.value = DeleteExpenseStatus.Failed
@@ -121,5 +119,18 @@ class ExpenseListViewModel @Inject constructor(
      */
     fun resetDeleteStatusToIdle() {
         _deleteStatusState.value = DeleteExpenseStatus.Idle
+    }
+
+    private fun mapToExpenseItemInfo(list: List<Expense>): List<ExpenseInfoItem> {
+        val expenseGroupedByDate = list.sortedByDescending { it.dateTime }.groupBy { it.dateTime.toLocalDate() }
+        val targetList = mutableListOf<ExpenseInfoItem>()
+        expenseGroupedByDate.forEach { (localDate, expenses) ->
+            targetList.add(ExpenseInfoItem.ExpenseGroupDate(date = localDate))
+            targetList.addAll(
+                expenses.map { ex -> ExpenseInfoItem.ExpenseCardDetail(expense = ex) }
+            )
+        }
+
+        return targetList
     }
 }

@@ -1,4 +1,4 @@
-package com.purkt.mindexpense.expense.presentation.screen.list.state
+package com.purkt.mindexpense.expense.domain.model
 
 sealed class DeleteExpenseStatus {
     object Idle : DeleteExpenseStatus()

@@ -16,12 +16,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.purkt.database.domain.model.Expense
+import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
+import com.purkt.mindexpense.expense.presentation.screen.list.component.DateLabel
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
-import com.purkt.mindexpense.expense.presentation.screen.list.state.DeleteExpenseStatus
-import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.ui.presentation.button.ui.component.AddButton
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -67,12 +69,15 @@ fun ExpenseListPage(
         viewModel.resetDeleteStatusToIdle()
     }
     val isLoading by viewModel.loadingState
-    val cardInfoListAsState by viewModel.cardInfoStateFlow.collectAsState()
+    val cardInfoItemsAsState by viewModel.cardInfoStateFlow.collectAsState()
+    val totalAmount by viewModel.totalAmountState
+    val totalCurrency by viewModel.totalCurrencyStringState
     BaseExpenseListPage(
         isLoading = isLoading,
-        cardInfoList = cardInfoListAsState,
+        cardInfoList = cardInfoItemsAsState,
+        totalAmount = totalAmount,
+        totalCurrency = totalCurrency,
         navigator = navigator,
-        onExpandCard = viewModel::changeCardInfoExpandedState,
         onDeleteCard = viewModel::deleteExpense,
         onNavigateToAddExpensePage = viewModel::goToAddExpensePage
     )
@@ -81,13 +86,14 @@ fun ExpenseListPage(
 @Composable
 private fun BaseExpenseListPage(
     isLoading: Boolean = true,
-    cardInfoList: List<ExpenseCardInfoState>,
+    cardInfoList: List<ExpenseInfoItem>,
+    totalAmount: Double,
+    totalCurrency: String,
     navigator: ExpenseNavigator,
-    onExpandCard: (ExpenseCardInfoState) -> Unit = {},
-    onDeleteCard: (ExpenseCardInfoState) -> Unit = {},
+    onDeleteCard: (ExpenseInfoItem.ExpenseCardDetail) -> Unit = {},
     onNavigateToAddExpensePage: (ExpenseNavigator) -> Unit = {}
 ) {
-    var targetStateToDelete by remember { mutableStateOf<ExpenseCardInfoState?>(null) }
+    var targetStateToDelete by remember { mutableStateOf<ExpenseInfoItem.ExpenseCardDetail?>(null) }
 
     val primaryColor = MaterialTheme.colors.primaryVariant
     Surface(
@@ -111,8 +117,6 @@ private fun BaseExpenseListPage(
                 }
             } else {
                 if (cardInfoList.isNotEmpty()) {
-                    val totalAmount = cardInfoList.sumOf { it.expense.amount }
-                    val currency = cardInfoList.firstOrNull()?.expense?.currency?.currencyCode ?: ""
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -126,7 +130,7 @@ private fun BaseExpenseListPage(
                                 .padding(24.dp)
                                 .align(Alignment.Center),
                             totalAmount = totalAmount,
-                            currency = currency,
+                            currency = totalCurrency,
                             backgroundColor = MaterialTheme.colors.background,
                             contentColor = primaryColor
                         )
@@ -139,16 +143,45 @@ private fun BaseExpenseListPage(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         item {
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
-                        items(items = cardInfoList, key = { it.expense.id }) {
-                            ExpenseCardInfo(
-                                state = it,
-                                onExpandCard = onExpandCard,
-                                onDeleteCard = {
-                                    targetStateToDelete = it
+
+                        items(
+                            items = cardInfoList,
+                            key = {
+                                when (it) {
+                                    is ExpenseInfoItem.ExpenseCardDetail -> {
+                                        it.expense.id
+                                    }
+                                    is ExpenseInfoItem.ExpenseGroupDate -> {
+                                        "${it.date.dayOfMonth}-${it.date.month}-${it.date.year}"
+                                    }
                                 }
-                            )
+                            }
+                        ) {
+                            when (it) {
+                                is ExpenseInfoItem.ExpenseCardDetail -> {
+                                    ExpenseCardInfo(
+                                        cardDetail = it,
+                                        onDeleteCard = {
+                                            targetStateToDelete = it
+                                        }
+                                    )
+                                }
+                                is ExpenseInfoItem.ExpenseGroupDate -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp)
+                                    ) {
+                                        DateLabel(
+                                            modifier = Modifier
+                                                .align(Alignment.Center),
+                                            dateString = it.dateString
+                                        )
+                                    }
+                                }
+                            }
                         }
                         item {
                             Spacer(modifier = Modifier.height(24.dp))
@@ -237,45 +270,62 @@ private fun BaseExpenseListPage(
 @Composable
 private fun PreviewExpenseScreenPage() {
     val data = listOf(
-        ExpenseCardInfoState(
+        ExpenseInfoItem.ExpenseGroupDate(LocalDate.of(2022, 7, 26)),
+        ExpenseInfoItem.ExpenseCardDetail(
             Expense(
                 id = 1,
                 title = "Breakfast",
                 description = "Eat breakfast with friend at the mall",
                 amount = 699.00,
                 currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.now()
+                dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
             ),
             isExpanded = false
         ),
-        ExpenseCardInfoState(
+        ExpenseInfoItem.ExpenseCardDetail(
             Expense(
                 id = 2,
                 title = "Lunch",
                 description = "Eat lunch with friend at the mall",
                 amount = 699.00,
                 currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.now()
+                dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
             ),
             isExpanded = false
         ),
-        ExpenseCardInfoState(
+        ExpenseInfoItem.ExpenseGroupDate(LocalDate.of(2022, 7, 25)),
+        ExpenseInfoItem.ExpenseCardDetail(
             Expense(
                 id = 3,
                 title = "Dinner",
                 description = "Eat dinner with friend at the mall",
                 amount = 699.00,
                 currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.now()
+                dateTime = LocalDateTime.of(2022, 7, 25, 18, 0, 0)
+            ),
+            isExpanded = false
+        ),
+        ExpenseInfoItem.ExpenseGroupDate(LocalDate.of(2022, 7, 24)),
+        ExpenseInfoItem.ExpenseCardDetail(
+            Expense(
+                id = 4,
+                title = "Dinner",
+                description = "Eat dinner with friend at the mall",
+                amount = 699.00,
+                currency = Currency.getInstance("THB"),
+                dateTime = LocalDateTime.of(2022, 7, 24, 18, 0, 0)
             ),
             isExpanded = false
         )
     )
-    BaseExpenseListPage(false, data, ExpenseNavigator())
+    val cardDetails = data.filterIsInstance<ExpenseInfoItem.ExpenseCardDetail>()
+    val totalAmount = cardDetails.sumOf { it.expense.amount }
+    val totalCurrency = cardDetails.firstOrNull()?.expense?.currency?.currencyCode ?: ""
+    BaseExpenseListPage(false, data, totalAmount, totalCurrency, ExpenseNavigator())
 }
 
 @Preview
 @Composable
 private fun PreviewExpenseScreenPageEmpty() {
-    BaseExpenseListPage(false, emptyList(), ExpenseNavigator())
+    BaseExpenseListPage(false, emptyList(), 0.0, "THB", ExpenseNavigator())
 }
