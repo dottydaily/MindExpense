@@ -1,5 +1,6 @@
 package com.purkt.mindexpense.expense.presentation.screen.list.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -21,8 +22,8 @@ fun TotalAmountBox(
     modifier: Modifier = Modifier,
     totalAmount: Double,
     currency: String,
-    backgroundColor: Color = MaterialTheme.colors.primaryVariant,
-    contentColor: Color = contentColorFor(backgroundColor)
+    backgroundColor: Color = MaterialTheme.colors.background,
+    contentColor: Color = MaterialTheme.colors.onBackground
 ) {
     val totalAmountString = DecimalFormat("#,##0.##").format(totalAmount)
     Card(
@@ -45,6 +46,7 @@ fun TotalAmountBox(
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewTotalAmountBox() {
     MindExpenseTheme {
@@ -53,6 +55,7 @@ private fun PreviewTotalAmountBox() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewTotalAmountBoxBlankCurrency() {
     MindExpenseTheme {

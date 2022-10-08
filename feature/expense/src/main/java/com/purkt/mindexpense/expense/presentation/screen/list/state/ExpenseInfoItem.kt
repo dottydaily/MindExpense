@@ -15,7 +15,7 @@ sealed class ExpenseInfoItem {
 
     class ExpenseGroupDate(val date: LocalDate) : ExpenseInfoItem() {
         val dateString: String = try {
-            DateTimeFormatter.ofPattern("d MMM yyyy").format(date)
+            DateTimeFormatter.ofPattern("eeee, MMMM d, yyyy").format(date)
         } catch (e: Throwable) {
             Timber.e("Can't parse date string from $date")
             ""

@@ -1,6 +1,7 @@
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import androidx.compose.foundation.BorderStroke
+import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -9,10 +10,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,6 +86,21 @@ private fun BaseExpenseAddPage(
                 .fillMaxWidth()
                 .wrapContentHeight()
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colors.primary)
+                    .padding(24.dp)
+            ) {
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart),
+                    text = "Add new expense",
+                    color = MaterialTheme.colors.onPrimary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,6 +164,7 @@ private fun BaseExpenseAddPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
+                                focusManager.clearFocus()
                                 val currentDate = LocalDate.now()
                                 DatePickerDialog(
                                     currentContext,
@@ -183,6 +200,7 @@ private fun BaseExpenseAddPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
+                                focusManager.clearFocus()
                                 val currentTime = LocalTime.now()
                                 TimePickerDialog(
                                     currentContext,
@@ -215,13 +233,8 @@ private fun BaseExpenseAddPage(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(MaterialTheme.colors.primary)
             ) {
-                Divider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter),
-                    color = Color.Gray
-                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,18 +242,23 @@ private fun BaseExpenseAddPage(
                         .align(Alignment.BottomCenter),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedButton(
+                    Button(
                         modifier = Modifier
                             .weight(1f),
                         onClick = { onNavigateBack.invoke(navigator) },
-                        border = BorderStroke(1.dp, MaterialTheme.colors.primary)
+                        colors = ButtonDefaults.textButtonColors(
+                            backgroundColor = MaterialTheme.colors.onPrimary
+                        )
                     ) {
                         Text(text = stringResource(id = com.purkt.ui.R.string.back))
                     }
                     Button(
                         modifier = Modifier
                             .weight(1f),
-                        onClick = { onClickSaveButton.invoke(addInfo) }
+                        onClick = { onClickSaveButton.invoke(addInfo) },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = MaterialTheme.colors.secondary
+                        )
                     ) {
                         Text(text = stringResource(id = com.purkt.ui.R.string.save))
                     }
@@ -251,6 +269,7 @@ private fun BaseExpenseAddPage(
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseAddPage() {
     val navigator = ExpenseNavigator()
@@ -265,6 +284,7 @@ private fun PreviewExpenseAddPage() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseAddPageShowError() {
     val navigator = ExpenseNavigator()

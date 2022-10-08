@@ -1,6 +1,9 @@
 package com.purkt.mindexpense.expense.presentation.screen.list.component
 
+import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -11,6 +14,8 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,60 +36,33 @@ fun ExpenseCardInfo(
 ) {
     val expense = cardDetail.expense
     val isExpanded = cardDetail.isExpanded
-    val backgroundColor = if (isExpanded) {
-        MaterialTheme.colors.surface
-    } else {
-        MaterialTheme.colors.primaryVariant
-    }
-    val contentColor = if (isExpanded) {
-        MaterialTheme.colors.primaryVariant
-    } else {
-        contentColorFor(backgroundColor)
-    }
-    val border = if (isExpanded) {
-        BorderStroke(2.dp, contentColor)
-    } else {
-        BorderStroke(0.dp, contentColor)
-    }
-    val shape = if (isExpanded) {
-        MaterialTheme.shapes.medium
-    } else {
-        RoundedCornerShape(
-            bottomEndPercent = 25
-        )
-    }
+    val backgroundColor = MaterialTheme.colors.surface
+    val contentColor = MaterialTheme.colors.onSurface
 
     val interactionSource = MutableInteractionSource()
-    Card(
+    Box(
         modifier = Modifier
+            .animateContentSize()
             .fillMaxWidth()
             .wrapContentHeight()
-            .border(
-                border = border,
-                shape = shape
-            )
+            .background(backgroundColor)
             .clickable(
                 interactionSource = interactionSource,
                 indication = rememberRipple(),
-                onClick = { cardDetail.isExpanded = true }
-            ),
-        shape = shape,
-        backgroundColor = backgroundColor,
-        contentColor = contentColor
+                onClick = { cardDetail.isExpanded = !cardDetail.isExpanded }
+            )
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    top = 16.dp,
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 16.dp
-                ),
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.End
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .padding(
+                        horizontal = 24.dp,
+                        vertical = 16.dp
+                    ),
             ) {
                 val maxLinesTitle = if (cardDetail.isExpanded) Int.MAX_VALUE else 1
                 Column(
@@ -93,6 +71,7 @@ fun ExpenseCardInfo(
                 ) {
                     Text(
                         text = expense.title,
+                        color = contentColor,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = maxLinesTitle,
@@ -100,12 +79,15 @@ fun ExpenseCardInfo(
                     )
                     Text(
                         text = cardDetail.expense.description,
+                        color = contentColor,
+                        fontSize = 14.sp,
                         maxLines = if (isExpanded) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(
+                    modifier = Modifier,
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -121,18 +103,21 @@ fun ExpenseCardInfo(
                     )
                     Text(
                         text = dateTimeString,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1
                     )
                 }
             }
-            Row(
-                modifier = Modifier
-                    .padding(top = 4.dp)
-            ) {
-                if (isExpanded) {
+            if (isExpanded) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(color = Color(0xFFEEEEEE))
+                ) {
                     TextButton(
+                        modifier = Modifier
+                            .weight(1f),
                         onClick = {
                             onDeleteCard.invoke()
                         },
@@ -143,14 +128,16 @@ fun ExpenseCardInfo(
                         Text(text = "Delete")
                     }
                     TextButton(
+                        modifier = Modifier
+                            .weight(1f),
                         onClick = {
-                            cardDetail.isExpanded = false
+                            // TODO()
                         },
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = contentColor
+                            contentColor = MaterialTheme.colors.primary
                         )
                     ) {
-                        Text(text = "Hide info")
+                        Text(text = "Edit")
                     }
                 }
             }
@@ -159,6 +146,7 @@ fun ExpenseCardInfo(
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseCardInfoCollapse() {
     val cardDetail = ExpenseInfoItem.ExpenseCardDetail(
@@ -177,6 +165,7 @@ private fun PreviewExpenseCardInfoCollapse() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseCardInfoExpanded() {
     val cardDetail = ExpenseInfoItem.ExpenseCardDetail(

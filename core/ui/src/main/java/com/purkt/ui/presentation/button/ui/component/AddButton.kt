@@ -1,16 +1,17 @@
 package com.purkt.ui.presentation.button.ui.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.purkt.ui.R
+import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 
 /**
  * An button with the add icon in front of button text.
@@ -23,7 +24,7 @@ import com.purkt.ui.R
 fun AddButton(
     modifier: Modifier = Modifier,
     text: String,
-    color: Color = MaterialTheme.colors.primary,
+    color: Color = MaterialTheme.colors.secondary,
     onClick: () -> Unit = {}
 ) {
     Button(
@@ -32,14 +33,15 @@ fun AddButton(
         onClick = onClick,
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = color
+            backgroundColor = color,
+            contentColor = contentColorFor(backgroundColor = color)
         )
     ) {
         Icon(
             modifier = Modifier
                 .size(16.dp),
             painter = painterResource(id = R.drawable.ic_plus_white),
-            tint = Color.White,
+            tint = contentColorFor(color),
             contentDescription = "Add icon in AddButton"
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -48,10 +50,13 @@ fun AddButton(
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewAddButton() {
-    AddButton(
-        modifier = Modifier.fillMaxWidth(),
-        text = "Test button"
-    )
+    MindExpenseTheme {
+        AddButton(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Test button"
+        )
+    }
 }

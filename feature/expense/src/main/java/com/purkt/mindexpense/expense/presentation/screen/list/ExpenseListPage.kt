@@ -1,5 +1,6 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,7 @@ import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseC
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.ui.presentation.button.ui.component.AddButton
+import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -95,7 +97,7 @@ private fun BaseExpenseListPage(
 ) {
     var targetStateToDelete by remember { mutableStateOf<ExpenseInfoItem.ExpenseCardDetail?>(null) }
 
-    val primaryColor = MaterialTheme.colors.primaryVariant
+    val primaryColor = MaterialTheme.colors.primary
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,21 +133,14 @@ private fun BaseExpenseListPage(
                                 .align(Alignment.Center),
                             totalAmount = totalAmount,
                             currency = totalCurrency,
-                            backgroundColor = MaterialTheme.colors.background,
-                            contentColor = primaryColor
+                            backgroundColor = MaterialTheme.colors.background
                         )
                     }
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                            .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .weight(1f)
                     ) {
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-
                         items(
                             items = cardInfoList,
                             key = {
@@ -172,11 +167,12 @@ private fun BaseExpenseListPage(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 8.dp)
+                                            .padding(vertical = 16.dp)
                                     ) {
                                         DateLabel(
                                             modifier = Modifier
-                                                .align(Alignment.Center),
+                                                .align(Alignment.CenterStart)
+                                                .padding(start = 24.dp),
                                             dateString = it.dateString
                                         )
                                     }
@@ -205,13 +201,8 @@ private fun BaseExpenseListPage(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(primaryColor)
                 ) {
-                    Divider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.TopCenter),
-                        color = Color.Gray
-                    )
                     AddButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -221,7 +212,7 @@ private fun BaseExpenseListPage(
                             )
                             .align(Alignment.Center),
                         text = "Add new expense",
-                        color = primaryColor,
+                        color = MaterialTheme.colors.secondary,
                         onClick = {
                             onNavigateToAddExpensePage.invoke(navigator)
                         }
@@ -267,6 +258,7 @@ private fun BaseExpenseListPage(
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseScreenPage() {
     val data = listOf(
@@ -321,11 +313,16 @@ private fun PreviewExpenseScreenPage() {
     val cardDetails = data.filterIsInstance<ExpenseInfoItem.ExpenseCardDetail>()
     val totalAmount = cardDetails.sumOf { it.expense.amount }
     val totalCurrency = cardDetails.firstOrNull()?.expense?.currency?.currencyCode ?: ""
-    BaseExpenseListPage(false, data, totalAmount, totalCurrency, ExpenseNavigator())
+    MindExpenseTheme {
+        BaseExpenseListPage(false, data, totalAmount, totalCurrency, ExpenseNavigator())
+    }
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseScreenPageEmpty() {
-    BaseExpenseListPage(false, emptyList(), 0.0, "THB", ExpenseNavigator())
+    MindExpenseTheme {
+        BaseExpenseListPage(false, emptyList(), 0.0, "THB", ExpenseNavigator())
+    }
 }
