@@ -1,6 +1,7 @@
 package com.purkt.mindexpense.presentation
 
 import android.content.res.Configuration
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -16,11 +17,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.purkt.mindexpense.expense.presentation.navigation.addExpenseListTopLevel
 import com.purkt.navigation.domain.model.Screen
 import com.purkt.setting.presentation.navgraph.addSettingTopLevel
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainPage(
     navController: NavHostController,
@@ -62,7 +65,7 @@ fun MainPage(
             }
         }
     ) { innerPadding ->
-        NavHost(
+        AnimatedNavHost(
             modifier = Modifier.padding(innerPadding),
             navController = navController,
             startDestination = Screen.Expense.route
