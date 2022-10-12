@@ -1,3 +1,4 @@
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.Configuration
@@ -18,8 +19,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.purkt.mindexpense.expense.R
-import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddViewModel
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
@@ -32,7 +33,7 @@ import java.time.LocalTime
 @Composable
 fun ExpenseAddPage(
     viewModel: ExpenseAddViewModel = hiltViewModel(),
-    navigator: ExpenseNavigator
+    onClose: () -> Unit
 ) {
     val addInfo by remember { mutableStateOf(ExpenseAddInfoState()) }
     val addExpenseStatus by viewModel.addStatusState
@@ -41,9 +42,8 @@ fun ExpenseAddPage(
         addExpenseStatus = addExpenseStatus,
         onGetDateString = viewModel::getDateString,
         onGetTimeString = viewModel::getTimeString,
-        navigator = navigator,
-        onNavigateBack = viewModel::goBackToPreviousPage,
-        onClickSaveButton = viewModel::addExpense
+        onClickBackButton = onClose,
+        onClickSaveButton = viewModel::saveExpense
     )
 }
 
@@ -53,16 +53,13 @@ private fun BaseExpenseAddPage(
     addExpenseStatus: AddExpenseStatus,
     onGetDateString: (dayOfMonth: Int, monthValue: Int, year: Int) -> String? = { _, _, _ -> "" },
     onGetTimeString: (hourOfDay: Int, minute: Int) -> String? = { _, _ -> "" },
-    navigator: ExpenseNavigator,
-    onNavigateBack: (ExpenseNavigator) -> Unit = {},
+    onClickBackButton: () -> Unit = {},
     onClickSaveButton: (ExpenseAddInfoState) -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
     when (addExpenseStatus) {
         AddExpenseStatus.Failed -> {}
-        AddExpenseStatus.Success -> {
-            onNavigateBack.invoke(navigator)
-        }
+        AddExpenseStatus.Success -> onClickBackButton.invoke()
         AddExpenseStatus.Idle -> {}
     }
     LaunchedEffect(key1 = addInfo.title) {
@@ -245,7 +242,7 @@ private fun BaseExpenseAddPage(
                     Button(
                         modifier = Modifier
                             .weight(1f),
-                        onClick = { onNavigateBack.invoke(navigator) },
+                        onClick = { onClickBackButton.invoke() },
                         colors = ButtonDefaults.textButtonColors(
                             backgroundColor = MaterialTheme.colors.onPrimary
                         )
@@ -272,13 +269,11 @@ private fun BaseExpenseAddPage(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseAddPage() {
-    val navigator = ExpenseNavigator()
     val addInfo = ExpenseAddInfoState()
     MindExpenseTheme {
         BaseExpenseAddPage(
             addInfo = addInfo,
-            addExpenseStatus = AddExpenseStatus.Idle,
-            navigator = navigator
+            addExpenseStatus = AddExpenseStatus.Idle
         )
     }
 }
@@ -287,7 +282,6 @@ private fun PreviewExpenseAddPage() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseAddPageShowError() {
-    val navigator = ExpenseNavigator()
     val addInfo = ExpenseAddInfoState().apply {
         isTitleInvalid.value = true
         isAmountInvalid.value = true
@@ -295,8 +289,7 @@ private fun PreviewExpenseAddPageShowError() {
     MindExpenseTheme {
         BaseExpenseAddPage(
             addInfo = addInfo,
-            addExpenseStatus = AddExpenseStatus.Idle,
-            navigator = navigator
+            addExpenseStatus = AddExpenseStatus.Idle
         )
     }
 }

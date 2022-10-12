@@ -83,6 +83,8 @@ dependencies {
     implementation "com.google.accompanist:accompanist-navigation-animation:0.26.5-rc"
     // Hilt with navigation compose
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
+    // Flow - Collect as State with Lifecycle-aware
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:2.6.0-alpha02"
 
 
     // Room Database

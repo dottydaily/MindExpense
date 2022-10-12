@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -20,7 +21,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun DateLabel(
     modifier: Modifier = Modifier,
-    dateString: String
+    dateDetail: ExpenseInfoItem.ExpenseDateDetail
 ) {
     Card(
         modifier = Modifier
@@ -34,7 +35,7 @@ fun DateLabel(
                     horizontal = 16.dp,
                     vertical = 8.dp
                 ),
-            text = dateString,
+            text = dateDetail.dateString,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colors.onSecondary
@@ -48,7 +49,11 @@ fun DateLabel(
 fun PreviewDateLabel() {
     MindExpenseTheme {
         Surface {
-            DateLabel(dateString = DateTimeFormatter.ofPattern("eeee, MMMM d, yyyy").format(LocalDate.now()))
+            DateLabel(
+                dateDetail = ExpenseInfoItem.ExpenseDateDetail(
+                    LocalDate.now()
+                )
+            )
         }
     }
 }

@@ -13,7 +13,7 @@ class ExpenseAddInfoState {
     }
     var title: String by mutableStateOf("")
     var description: String by mutableStateOf("")
-    var amount: String by mutableStateOf("0")
+    var amount: String by mutableStateOf("")
     var date: String by mutableStateOf("")
     var time: String by mutableStateOf("")
     var isTitleInvalid = mutableStateOf(false)

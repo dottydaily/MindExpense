@@ -61,7 +61,7 @@ class ExpenseAddViewModelTest {
 
             // When
             viewModel.run {
-                addExpense(mockAddInfoState)
+                saveExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
@@ -87,7 +87,7 @@ class ExpenseAddViewModelTest {
 
             // When
             viewModel.run {
-                addExpense(mockAddInfoState)
+                saveExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
@@ -113,7 +113,7 @@ class ExpenseAddViewModelTest {
 
             // When
             viewModel.run {
-                addExpense(mockAddInfoState)
+                saveExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
@@ -139,7 +139,7 @@ class ExpenseAddViewModelTest {
 
             // When
             viewModel.run {
-                addExpense(mockAddInfoState)
+                saveExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 
@@ -165,7 +165,7 @@ class ExpenseAddViewModelTest {
 
             // When
             viewModel.run {
-                addExpense(mockAddInfoState)
+                saveExpense(mockAddInfoState)
                 advanceUntilIdle()
             }
 

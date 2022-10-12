@@ -29,7 +29,9 @@ fun NormalEditText(
         TextFieldDefaults.outlinedTextFieldColors(
             textColor = MaterialTheme.colors.error
         )
-    } else TextFieldDefaults.outlinedTextFieldColors()
+    } else TextFieldDefaults.outlinedTextFieldColors(
+        focusedLabelColor = MaterialTheme.colors.secondary
+    )
     val interactionSource = remember { MutableInteractionSource() }
     val baseLabelColor = baseColors.labelColor(
         enabled = true,

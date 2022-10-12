@@ -7,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
 import com.purkt.database.domain.usecase.AddExpenseUseCase
 import com.purkt.mindexpense.expense.domain.model.ExpenseForm
-import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
-import com.purkt.mindexpense.expense.presentation.screen.ExpenseScreen
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +28,7 @@ class ExpenseAddViewModel @Inject constructor(
     private val _addStatusState = mutableStateOf<AddExpenseStatus>(AddExpenseStatus.Idle)
     val addStatusState: State<AddExpenseStatus> = _addStatusState
 
-    fun addExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
+    fun saveExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
         try {
             val amount = expenseInfo.amount.toDouble()
             val form = ExpenseForm(
@@ -61,10 +59,6 @@ class ExpenseAddViewModel @Inject constructor(
             Timber.e(e.message)
             _addStatusState.value = AddExpenseStatus.Failed
         }
-    }
-
-    fun goBackToPreviousPage(navigator: ExpenseNavigator) {
-        navigator.popTo(ExpenseScreen.ListScreen)
     }
 
     fun getDateString(dayOfMonth: Int, monthValueCalendar: Int, year: Int): String? {

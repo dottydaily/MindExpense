@@ -1,5 +1,7 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -16,9 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.purkt.common.domain.util.ComposeLifecycle
 import com.purkt.database.domain.model.Expense
+import com.purkt.mindexpense.expense.domain.model.DailyExpenses
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
-import com.purkt.mindexpense.expense.presentation.navigation.ExpenseNavigator
+import com.purkt.mindexpense.expense.domain.model.MonthlyExpenses
+import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
 import com.purkt.mindexpense.expense.presentation.screen.list.component.DateLabel
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
@@ -27,19 +34,19 @@ import com.purkt.ui.presentation.button.ui.component.AddButton
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Month
 import java.util.*
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun ExpenseListPage(
-    viewModel: ExpenseListViewModel = hiltViewModel(),
-    navigator: ExpenseNavigator
+    viewModel: ExpenseListViewModel = hiltViewModel()
 ) {
-    // Launch this side-effect block after the composition is completed.
-    // Use for waiting every state's transaction to be committed-
-    // -before do some process that need to reference to those states
-    LaunchedEffect(true) {
-        viewModel.fetchAllExpenses()
-    }
+    ComposeLifecycle.DoOnLifecycle(
+        onResume = {
+            viewModel.fetchAllExpenses()
+        }
+    )
 
     val deleteStatus by viewModel.deleteStatusState
     val context = LocalContext.current
@@ -71,31 +78,27 @@ fun ExpenseListPage(
         viewModel.resetDeleteStatusToIdle()
     }
     val isLoading by viewModel.loadingState
-    val cardInfoItemsAsState by viewModel.cardInfoStateFlow.collectAsState()
+    val monthlyExpenses by viewModel.monthlyExpensesFlow.collectAsStateWithLifecycle()
     val totalAmount by viewModel.totalAmountState
     val totalCurrency by viewModel.totalCurrencyStringState
     BaseExpenseListPage(
         isLoading = isLoading,
-        cardInfoList = cardInfoItemsAsState,
+        monthlyExpenses = monthlyExpenses,
         totalAmount = totalAmount,
         totalCurrency = totalCurrency,
-        navigator = navigator,
-        onDeleteCard = viewModel::deleteExpense,
-        onNavigateToAddExpensePage = viewModel::goToAddExpensePage
+        onDeleteCard = viewModel::deleteExpense
     )
 }
 
 @Composable
 private fun BaseExpenseListPage(
     isLoading: Boolean = true,
-    cardInfoList: List<ExpenseInfoItem>,
+    monthlyExpenses: MonthlyExpenses?,
     totalAmount: Double,
     totalCurrency: String,
-    navigator: ExpenseNavigator,
-    onDeleteCard: (ExpenseInfoItem.ExpenseCardDetail) -> Unit = {},
-    onNavigateToAddExpensePage: (ExpenseNavigator) -> Unit = {}
+    onDeleteCard: (Expense) -> Unit = {}
 ) {
-    var targetStateToDelete by remember { mutableStateOf<ExpenseInfoItem.ExpenseCardDetail?>(null) }
+    var targetStateToDelete by remember { mutableStateOf<Expense?>(null) }
 
     val primaryColor = MaterialTheme.colors.primary
     Surface(
@@ -118,7 +121,7 @@ private fun BaseExpenseListPage(
                     )
                 }
             } else {
-                if (cardInfoList.isNotEmpty()) {
+                if (monthlyExpenses != null && monthlyExpenses.expensesByDate.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -141,46 +144,20 @@ private fun BaseExpenseListPage(
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
-                        items(
-                            items = cardInfoList,
-                            key = {
-                                when (it) {
-                                    is ExpenseInfoItem.ExpenseCardDetail -> {
-                                        it.expense.id
-                                    }
-                                    is ExpenseInfoItem.ExpenseGroupDate -> {
-                                        "${it.date.dayOfMonth}-${it.date.month}-${it.date.year}"
-                                    }
-                                }
+                        monthlyExpenses.expensesByDate.forEach { (localDate, dailyExpenses) ->
+                            item {
+                                DateLabel(
+                                    modifier = Modifier
+                                        .padding(24.dp),
+                                    dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
+                                )
                             }
-                        ) {
-                            when (it) {
-                                is ExpenseInfoItem.ExpenseCardDetail -> {
-                                    ExpenseCardInfo(
-                                        cardDetail = it,
-                                        onDeleteCard = {
-                                            targetStateToDelete = it
-                                        }
-                                    )
-                                }
-                                is ExpenseInfoItem.ExpenseGroupDate -> {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 16.dp)
-                                    ) {
-                                        DateLabel(
-                                            modifier = Modifier
-                                                .align(Alignment.CenterStart)
-                                                .padding(start = 24.dp),
-                                            dateString = it.dateString
-                                        )
-                                    }
-                                }
+                            items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
+                                ExpenseCardInfo(
+                                    cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
+                                    onDeleteCard = { targetStateToDelete = expense }
+                                )
                             }
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
                 } else {
@@ -203,6 +180,7 @@ private fun BaseExpenseListPage(
                         .fillMaxWidth()
                         .background(primaryColor)
                 ) {
+                    val context = LocalContext.current
                     AddButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -214,7 +192,7 @@ private fun BaseExpenseListPage(
                         text = "Add new expense",
                         color = MaterialTheme.colors.secondary,
                         onClick = {
-                            onNavigateToAddExpensePage.invoke(navigator)
+                            startAddActivity(context)
                         }
                     )
                 }
@@ -224,6 +202,7 @@ private fun BaseExpenseListPage(
         // Show dialog to confirm for deleting expense
         if (targetStateToDelete != null) {
             AlertDialog(
+                backgroundColor = MaterialTheme.colors.surface,
                 onDismissRequest = { targetStateToDelete = null },
                 title = {
                     Text(
@@ -249,7 +228,7 @@ private fun BaseExpenseListPage(
                             targetStateToDelete = null
                         }
                     ) {
-                        Text("Cancel", color = Color.DarkGray)
+                        Text("Cancel", color = MaterialTheme.colors.onSurface)
                     }
                 }
             )
@@ -257,64 +236,82 @@ private fun BaseExpenseListPage(
     }
 }
 
+private fun startAddActivity(context: Context) {
+    val intent = Intent(context, ExpenseAddActivity::class.java)
+    context.startActivity(intent)
+}
+
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseScreenPage() {
-    val data = listOf(
-        ExpenseInfoItem.ExpenseGroupDate(LocalDate.of(2022, 7, 26)),
-        ExpenseInfoItem.ExpenseCardDetail(
-            Expense(
-                id = 1,
-                title = "Breakfast",
-                description = "Eat breakfast with friend at the mall",
-                amount = 699.00,
-                currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
-            ),
-            isExpanded = false
+    val mockData = mutableMapOf<LocalDate, DailyExpenses>(
+        Pair(
+            first = LocalDate.of(2022, 7, 26),
+            second = DailyExpenses(
+                expenses = mutableListOf(
+                    Expense(
+                        id = 1,
+                        title = "Breakfast",
+                        description = "Eat breakfast with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
+                    ),
+                    Expense(
+                        id = 2,
+                        title = "Lunch",
+                        description = "Eat lunch with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
+                    )
+                ),
+                date = LocalDate.of(2022, 7, 26)
+            )
         ),
-        ExpenseInfoItem.ExpenseCardDetail(
-            Expense(
-                id = 2,
-                title = "Lunch",
-                description = "Eat lunch with friend at the mall",
-                amount = 699.00,
-                currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
-            ),
-            isExpanded = false
+        Pair(
+            first = LocalDate.of(2022, 7, 25),
+            second = DailyExpenses(
+                expenses = mutableListOf(
+                    Expense(
+                        id = 3,
+                        title = "Dinner",
+                        description = "Eat dinner with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 25, 18, 0, 0)
+                    )
+                ),
+                date = LocalDate.of(2022, 7, 25)
+            )
         ),
-        ExpenseInfoItem.ExpenseGroupDate(LocalDate.of(2022, 7, 25)),
-        ExpenseInfoItem.ExpenseCardDetail(
-            Expense(
-                id = 3,
-                title = "Dinner",
-                description = "Eat dinner with friend at the mall",
-                amount = 699.00,
-                currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.of(2022, 7, 25, 18, 0, 0)
-            ),
-            isExpanded = false
-        ),
-        ExpenseInfoItem.ExpenseGroupDate(LocalDate.of(2022, 7, 24)),
-        ExpenseInfoItem.ExpenseCardDetail(
-            Expense(
-                id = 4,
-                title = "Dinner",
-                description = "Eat dinner with friend at the mall",
-                amount = 699.00,
-                currency = Currency.getInstance("THB"),
-                dateTime = LocalDateTime.of(2022, 7, 24, 18, 0, 0)
-            ),
-            isExpanded = false
+        Pair(
+            first = LocalDate.of(2022, 7, 24),
+            second = DailyExpenses(
+                expenses = mutableListOf(
+                    Expense(
+                        id = 4,
+                        title = "Dinner",
+                        description = "Eat dinner with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 24, 18, 0, 0)
+                    )
+                ),
+                date = LocalDate.of(2022, 7, 24)
+            )
         )
     )
-    val cardDetails = data.filterIsInstance<ExpenseInfoItem.ExpenseCardDetail>()
-    val totalAmount = cardDetails.sumOf { it.expense.amount }
-    val totalCurrency = cardDetails.firstOrNull()?.expense?.currency?.currencyCode ?: ""
+    val monthlyExpenses = MonthlyExpenses(
+        expensesByDate = mockData,
+        startDate = LocalDate.of(2022, Month.JULY, 25),
+        endDate = LocalDate.of(2022, Month.AUGUST, 24)
+    )
+    val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
+    val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     MindExpenseTheme {
-        BaseExpenseListPage(false, data, totalAmount, totalCurrency, ExpenseNavigator())
+        BaseExpenseListPage(false, monthlyExpenses, totalAmount, totalCurrency)
     }
 }
 
@@ -322,7 +319,12 @@ private fun PreviewExpenseScreenPage() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseScreenPageEmpty() {
+    val monthlyExpenses = MonthlyExpenses(
+        expensesByDate = mutableMapOf(),
+        startDate = LocalDate.of(2022, Month.JULY, 25),
+        endDate = LocalDate.of(2022, Month.AUGUST, 24)
+    )
     MindExpenseTheme {
-        BaseExpenseListPage(false, emptyList(), 0.0, "THB", ExpenseNavigator())
+        BaseExpenseListPage(false, monthlyExpenses, 0.0, "THB")
     }
 }

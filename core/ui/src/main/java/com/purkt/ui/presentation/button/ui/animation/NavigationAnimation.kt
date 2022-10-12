@@ -16,7 +16,7 @@ fun AnimatedContentScope<NavBackStackEntry>.slideLeftEnter(): EnterTransition {
         towards = AnimatedContentScope.SlideDirection.Left,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMediumLow
         )
     )
 }
@@ -26,7 +26,7 @@ fun AnimatedContentScope<NavBackStackEntry>.slideLeftExit(): ExitTransition {
         towards = AnimatedContentScope.SlideDirection.Left,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMediumLow
         )
     )
 }
@@ -36,7 +36,7 @@ fun AnimatedContentScope<NavBackStackEntry>.slideRightEnter(): EnterTransition {
         towards = AnimatedContentScope.SlideDirection.Right,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMediumLow
         )
     )
 }
@@ -46,7 +46,7 @@ fun AnimatedContentScope<NavBackStackEntry>.slideRightExit(): ExitTransition {
         towards = AnimatedContentScope.SlideDirection.Right,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMediumLow
         )
     )
 }

@@ -32,7 +32,7 @@ import java.util.*
 @Composable
 fun ExpenseCardInfo(
     cardDetail: ExpenseInfoItem.ExpenseCardDetail,
-    onDeleteCard: () -> Unit = {}
+    onDeleteCard: (Expense) -> Unit = {}
 ) {
     val expense = cardDetail.expense
     val isExpanded = cardDetail.isExpanded
@@ -113,13 +113,13 @@ fun ExpenseCardInfo(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(color = Color(0xFFEEEEEE))
+                        .background(color = Color.White)
                 ) {
                     TextButton(
                         modifier = Modifier
                             .weight(1f),
                         onClick = {
-                            onDeleteCard.invoke()
+                            onDeleteCard.invoke(expense)
                         },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colors.error

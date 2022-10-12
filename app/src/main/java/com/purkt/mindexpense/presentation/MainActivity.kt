@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.purkt.navigation.domain.model.Screen
+import com.purkt.navigation.presentation.NavGraphRoute
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,8 +19,8 @@ class MainActivity : ComponentActivity() {
 
             MindExpenseTheme {
                 val items = listOf(
-                    Screen.Expense,
-                    Screen.Setting
+                    NavGraphRoute.Expense,
+                    NavGraphRoute.Setting
                 )
                 MainPage(
                     navController = navController,

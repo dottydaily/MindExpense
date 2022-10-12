@@ -13,7 +13,7 @@ sealed class ExpenseInfoItem {
         var isExpanded by mutableStateOf(isExpanded)
     }
 
-    class ExpenseGroupDate(val date: LocalDate) : ExpenseInfoItem() {
+    class ExpenseDateDetail(val date: LocalDate) : ExpenseInfoItem() {
         val dateString: String = try {
             DateTimeFormatter.ofPattern("eeee, MMMM d, yyyy").format(date)
         } catch (e: Throwable) {

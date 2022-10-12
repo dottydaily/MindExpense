@@ -8,18 +8,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.purkt.mindexpense.expense.presentation.navigation.addExpenseListTopLevel
-import com.purkt.navigation.domain.model.Screen
+import com.purkt.navigation.presentation.NavGraphRoute
+import com.purkt.navigation.presentation.Navigator
 import com.purkt.setting.presentation.navgraph.addSettingTopLevel
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 
@@ -27,8 +28,9 @@ import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 @Composable
 fun MainPage(
     navController: NavHostController,
-    navigationBarItems: List<Screen>
+    navigationBarItems: List<NavGraphRoute>
 ) {
+    val navigator = remember { Navigator(navController) }
     Scaffold(
         bottomBar = {
             BottomNavigation(
@@ -39,17 +41,17 @@ fun MainPage(
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                navigationBarItems.forEach { screen ->
+                navigationBarItems.forEach { graph ->
                     BottomNavigationItem(
                         icon = {
                             Icon(Icons.Filled.Favorite, contentDescription = null)
                         },
                         label = {
-                            Text(text = stringResource(id = screen.resourceId))
+                            Text(text = stringResource(id = graph.resourceId))
                         },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        selected = currentDestination?.hierarchy?.any { it.route == graph.route } == true,
                         onClick = {
-                            navController.navigate(screen.route) {
+                            navigator.navigateTo(graph) {
                                 // Pop up to the start destination to clear all remaining backstack
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -68,10 +70,10 @@ fun MainPage(
         AnimatedNavHost(
             modifier = Modifier.padding(innerPadding),
             navController = navController,
-            startDestination = Screen.Expense.route
+            startDestination = NavGraphRoute.Expense.route
         ) {
-            addExpenseListTopLevel(navController)
-            addSettingTopLevel(navController)
+            addExpenseListTopLevel(navigator)
+            addSettingTopLevel(navigator)
         }
     }
 }
@@ -84,8 +86,8 @@ private fun PreviewMainPage() {
         MainPage(
             navController = rememberNavController(),
             navigationBarItems = listOf(
-                Screen.Expense,
-                Screen.Setting
+                NavGraphRoute.Expense,
+                NavGraphRoute.Setting
             )
         )
     }
