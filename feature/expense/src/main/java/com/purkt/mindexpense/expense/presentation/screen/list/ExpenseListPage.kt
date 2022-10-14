@@ -5,10 +5,13 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,11 +29,10 @@ import com.purkt.mindexpense.expense.domain.model.DailyExpenses
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.domain.model.MonthlyExpenses
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
-import com.purkt.mindexpense.expense.presentation.screen.list.component.DateLabel
+import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
-import com.purkt.ui.presentation.button.ui.component.AddButton
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -106,95 +108,123 @@ private fun BaseExpenseListPage(
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+        val context = LocalContext.current
+        val fabInteractionSource = remember { MutableInteractionSource() }
+        Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(
+                    interactionSource = fabInteractionSource,
+                    elevation = FloatingActionButtonDefaults.elevation(),
+                    onClick = { startAddActivity(context) }
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add expense button",
+                        tint = MaterialTheme.colors.primary
                     )
                 }
-            } else {
-                if (monthlyExpenses != null && monthlyExpenses.expensesByDate.isNotEmpty()) {
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                if (isLoading) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .background(
-                                color = primaryColor
-                            )
-                    ) {
-                        TotalAmountBox(
-                            modifier = Modifier
-                                .padding(24.dp)
-                                .align(Alignment.Center),
-                            totalAmount = totalAmount,
-                            currency = totalCurrency,
-                            backgroundColor = MaterialTheme.colors.background
-                        )
-                    }
-                    LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
-                        monthlyExpenses.expensesByDate.forEach { (localDate, dailyExpenses) ->
-                            item {
-                                DateLabel(
-                                    modifier = Modifier
-                                        .padding(24.dp),
-                                    dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
-                                )
-                            }
-                            items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
-                                ExpenseCardInfo(
-                                    cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
-                                    onDeleteCard = { targetStateToDelete = expense }
-                                )
-                            }
-                        }
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
                     }
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        Text(
+                    if (monthlyExpenses != null && monthlyExpenses.expensesByDate.isNotEmpty()) {
+                        Box(
                             modifier = Modifier
-                                .align(Alignment.Center),
-                            text = "No data",
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.h6
-                        )
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(primaryColor)
-                ) {
-                    val context = LocalContext.current
-                    AddButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                horizontal = 24.dp,
-                                vertical = 8.dp
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .background(
+                                    color = primaryColor
+                                )
+                        ) {
+                            TotalAmountBox(
+                                modifier = Modifier
+                                    .padding(24.dp)
+                                    .align(Alignment.Center),
+                                totalAmount = totalAmount,
+                                currency = totalCurrency,
+                                backgroundColor = MaterialTheme.colors.background
                             )
-                            .align(Alignment.Center),
-                        text = "Add new expense",
-                        color = MaterialTheme.colors.secondary,
-                        onClick = {
-                            startAddActivity(context)
                         }
-                    )
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            monthlyExpenses.expensesByDate.forEach { (localDate, dailyExpenses) ->
+                                val dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
+                                val dailyAmount = dailyExpenses.expenses.sumOf { it.amount }
+                                item {
+                                    Row(
+                                        modifier = Modifier.padding(24.dp)
+                                    ) {
+                                        DailyDetailTitle(
+                                            modifier = Modifier
+                                                .align(Alignment.CenterVertically),
+                                            expenses = dailyExpenses.expenses,
+                                            dateDetail = dateDetail
+                                        )
+                                    }
+                                }
+                                items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
+                                    ExpenseCardInfo(
+                                        cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
+                                        onDeleteCard = { targetStateToDelete = expense }
+                                    )
+                                }
+                            }
+                            item {
+                                Spacer(modifier = Modifier.height(120.dp))
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.Center),
+                                text = "No data",
+                                color = Color.Gray,
+                                style = MaterialTheme.typography.h6
+                            )
+                        }
+                    }
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .background(primaryColor)
+//                    ) {
+//                        val context = LocalContext.current
+//                        AddButton(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(
+//                                    horizontal = 24.dp,
+//                                    vertical = 8.dp
+//                                )
+//                                .align(Alignment.Center),
+//                            text = "Add new expense",
+//                            color = MaterialTheme.colors.secondary,
+//                            onClick = {
+//                                startAddActivity(context)
+//                            }
+//                        )
+//                    }
                 }
             }
         }
