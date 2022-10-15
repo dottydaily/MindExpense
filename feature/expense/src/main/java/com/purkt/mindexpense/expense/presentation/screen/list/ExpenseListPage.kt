@@ -31,6 +31,7 @@ import com.purkt.mindexpense.expense.domain.model.MonthlyExpenses
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
 import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
+import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRangeBox
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
@@ -88,7 +89,9 @@ fun ExpenseListPage(
         monthlyExpenses = monthlyExpenses,
         totalAmount = totalAmount,
         totalCurrency = totalCurrency,
-        onDeleteCard = viewModel::deleteExpense
+        onDeleteCard = viewModel::deleteExpense,
+        onChoosePreviousMonth = viewModel::fetchPreviousMonth,
+        onChooseNextMonth = viewModel::fetchNextMonth
     )
 }
 
@@ -98,7 +101,9 @@ private fun BaseExpenseListPage(
     monthlyExpenses: MonthlyExpenses?,
     totalAmount: Double,
     totalCurrency: String,
-    onDeleteCard: (Expense) -> Unit = {}
+    onDeleteCard: (Expense) -> Unit = {},
+    onChoosePreviousMonth: () -> Unit = {},
+    onChooseNextMonth: () -> Unit = {}
 ) {
     var targetStateToDelete by remember { mutableStateOf<Expense?>(null) }
 
@@ -113,6 +118,10 @@ private fun BaseExpenseListPage(
         Scaffold(
             floatingActionButton = {
                 FloatingActionButton(
+                    modifier = Modifier
+                        .padding(
+                            bottom = 60.dp
+                        ),
                     interactionSource = fabInteractionSource,
                     elevation = FloatingActionButtonDefaults.elevation(),
                     onClick = { startAddActivity(context) }
@@ -128,6 +137,7 @@ private fun BaseExpenseListPage(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(padding)
             ) {
                 if (isLoading) {
                     Box(
@@ -204,27 +214,24 @@ private fun BaseExpenseListPage(
                             )
                         }
                     }
-//                    Box(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .background(primaryColor)
-//                    ) {
-//                        val context = LocalContext.current
-//                        AddButton(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(
-//                                    horizontal = 24.dp,
-//                                    vertical = 8.dp
-//                                )
-//                                .align(Alignment.Center),
-//                            text = "Add new expense",
-//                            color = MaterialTheme.colors.secondary,
-//                            onClick = {
-//                                startAddActivity(context)
-//                            }
-//                        )
-//                    }
+                }
+
+                if (monthlyExpenses != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(primaryColor)
+                    ) {
+                        MonthRangeBox(
+                            modifier = Modifier
+                                .align(Alignment.Center),
+                            startDate = monthlyExpenses.startDate,
+                            endDate = monthlyExpenses.endDate,
+                            contentColor = MaterialTheme.colors.onPrimary,
+                            onClickLeftArrow = onChoosePreviousMonth,
+                            onClickRightArrow = onChooseNextMonth
+                        )
+                    }
                 }
             }
         }

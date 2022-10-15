@@ -32,6 +32,18 @@ class ExpenseListViewModel @Inject constructor(
     private val _totalAmountState = mutableStateOf(0.0)
     private val _totalCurrencyState = mutableStateOf("")
 
+    // Date related
+    private var startDayEachMonth = 25
+    private var startDate: LocalDate = LocalDate.now().run {
+        var targetDate = this
+        if (dayOfMonth < startDayEachMonth) {
+            targetDate = targetDate.minusMonths(1)
+        }
+        targetDate = targetDate.withDayOfMonth(startDayEachMonth)
+        targetDate
+    }
+    private var endDate: LocalDate = startDate.plusMonths(1).minusDays(1)
+
     /**
      * A State of loading status of this page.
      */
@@ -63,9 +75,10 @@ class ExpenseListViewModel @Inject constructor(
      * This method will observe database and emit the updated data to [monthlyExpensesFlow].
      */
     fun fetchAllExpenses() = viewModelScope.launch(ioDispatcher) {
+        _loadingState.value = true
         findAllExpensesUseCase.invoke()
-            .transform { expenseListFromDb ->
-                val thisMonthExpenses = mapToMonthlyExpenses(expenseListFromDb)
+            .transform { expensesFromDb ->
+                val thisMonthExpenses = mapToMonthlyExpenses(expensesFromDb)
                 emit(thisMonthExpenses)
             }
             .collect { thisMonthExpenses ->
@@ -131,23 +144,29 @@ class ExpenseListViewModel @Inject constructor(
         _deleteStatusState.value = DeleteExpenseStatus.Idle
     }
 
+    fun fetchPreviousMonth() {
+        startDate = startDate.minusMonths(1)
+        endDate = endDate.minusMonths(1)
+        fetchAllExpenses()
+    }
+
+    fun fetchNextMonth() {
+        startDate = startDate.plusMonths(1)
+        endDate = endDate.plusMonths(1)
+        fetchAllExpenses()
+    }
+
     private fun mapToMonthlyExpenses(list: List<Expense>): MonthlyExpenses {
-        val now = LocalDate.now()
-        val startDayOfEachMonth = 25
-        val isPassStartDate = now.dayOfMonth >= startDayOfEachMonth
-        val startDate = LocalDate.now().withDayOfMonth(startDayOfEachMonth).run {
-            if (!isPassStartDate) {
-                withMonth(monthValue - 1)
-            } else this
-        }
-        val endDate = startDate.plusMonths(1).minusDays(1)
         val expensesGroupByDate = list.sortedByDescending { it.dateTime }.groupBy { it.dateTime.toLocalDate() }
             .mapValues { DailyExpenses(it.value.toMutableList(), it.key) }
 
-        val filteredExpenses = expensesGroupByDate.filterKeys {
-            it.isEqual(startDate) || (it.isAfter(startDate) && it.isBefore(endDate)) || it.isEqual(endDate)
-        }.toMutableMap()
+        val filteredExpenses = expensesGroupByDate
+            .filterKeys { it.isLocalDateInRangeOf(startDate, endDate) }.toMutableMap()
 
         return MonthlyExpenses(expensesByDate = filteredExpenses, startDate = startDate, endDate = endDate)
+    }
+
+    private fun LocalDate.isLocalDateInRangeOf(startDate: LocalDate, endDate: LocalDate): Boolean {
+        return isEqual(startDate) || (isAfter(startDate) && isBefore(endDate)) || isEqual(endDate)
     }
 }

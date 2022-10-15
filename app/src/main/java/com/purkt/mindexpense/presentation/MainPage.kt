@@ -44,7 +44,7 @@ fun MainPage(
                 navigationBarItems.forEach { graph ->
                     BottomNavigationItem(
                         icon = {
-                            Icon(Icons.Filled.Favorite, contentDescription = null)
+                            Icon(graph.icon, contentDescription = null)
                         },
                         label = {
                             Text(text = stringResource(id = graph.resourceId))
