@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.Month
@@ -44,7 +45,7 @@ class ExpenseAddViewModel @Inject constructor(
                 state.expenseId = id
                 state.title = expense.title
                 state.description = expense.description
-                state.amount = expense.amount.toString()
+                state.amount = DecimalFormat("###0.##").format(expense.amount)
                 with(expense.dateTime) {
                     state.date = getDateString(dayOfMonth, month.value - 1, year) ?: ""
                     state.time = getTimeString(hour, minute) ?: ""
