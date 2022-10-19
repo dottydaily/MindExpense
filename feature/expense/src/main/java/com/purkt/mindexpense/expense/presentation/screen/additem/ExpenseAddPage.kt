@@ -166,7 +166,11 @@ private fun BaseExpenseAddPage(
                             .fillMaxWidth()
                             .clickable {
                                 focusManager.clearFocus()
-                                val currentDate = LocalDate.now()
+                                val currentDate = if (addInfo.date.isNotBlank()) {
+                                    addInfo.getLocalDateTime().toLocalDate()
+                                } else {
+                                    LocalDate.now()
+                                }
                                 DatePickerDialog(
                                     currentContext,
                                     { _, year, monthValueCalender, dayOfMonth ->
@@ -202,7 +206,11 @@ private fun BaseExpenseAddPage(
                             .fillMaxWidth()
                             .clickable {
                                 focusManager.clearFocus()
-                                val currentTime = LocalTime.now()
+                                val currentTime = if (addInfo.time.isNotBlank()) {
+                                    addInfo.getLocalDateTime().toLocalTime()
+                                } else {
+                                    LocalTime.now()
+                                }
                                 TimePickerDialog(
                                     currentContext,
                                     { _, hour, minute ->
