@@ -11,6 +11,7 @@ class ExpenseAddInfoState {
         const val DATE_PATTERN = "dd-MMM-yyyy"
         const val TIME_PATTERN = "HH:mm"
     }
+    var expenseId: Int = 0
     var title: String by mutableStateOf("")
     var description: String by mutableStateOf("")
     var amount: String by mutableStateOf("")

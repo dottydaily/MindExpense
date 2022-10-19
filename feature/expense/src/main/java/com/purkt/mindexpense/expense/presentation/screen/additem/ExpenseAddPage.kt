@@ -1,4 +1,3 @@
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.Configuration
@@ -19,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.material.datepicker.MaterialDatePicker
 import com.purkt.mindexpense.expense.R
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddViewModel
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
@@ -32,10 +30,16 @@ import java.time.LocalTime
 
 @Composable
 fun ExpenseAddPage(
+    targetExpenseId: Int? = null,
     viewModel: ExpenseAddViewModel = hiltViewModel(),
     onClose: () -> Unit
 ) {
-    val addInfo by remember { mutableStateOf(ExpenseAddInfoState()) }
+    LaunchedEffect(Unit) {
+        targetExpenseId?.let {
+            viewModel.loadExpenseId(it)
+        }
+    }
+    val addInfo by viewModel.addInfo
     val addExpenseStatus by viewModel.addStatusState
     BaseExpenseAddPage(
         addInfo = addInfo,

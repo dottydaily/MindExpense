@@ -2,20 +2,15 @@ package com.purkt.mindexpense.expense.presentation.screen.list.component
 
 import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,6 +27,7 @@ import java.util.*
 @Composable
 fun ExpenseCardInfo(
     cardDetail: ExpenseInfoItem.ExpenseCardDetail,
+    onEditExpense: (expenseId: Int) -> Unit = {},
     onDeleteCard: (Expense) -> Unit = {}
 ) {
     val expense = cardDetail.expense
@@ -62,7 +58,7 @@ fun ExpenseCardInfo(
                     .padding(
                         horizontal = 24.dp,
                         vertical = 16.dp
-                    ),
+                    )
             ) {
                 val maxLinesTitle = if (cardDetail.isExpanded) Int.MAX_VALUE else 1
                 Column(
@@ -113,7 +109,6 @@ fun ExpenseCardInfo(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(color = Color.White)
                 ) {
                     TextButton(
                         modifier = Modifier
@@ -131,10 +126,10 @@ fun ExpenseCardInfo(
                         modifier = Modifier
                             .weight(1f),
                         onClick = {
-                            // TODO()
+                            onEditExpense.invoke(expense.id)
                         },
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colors.primary
+                            contentColor = contentColor
                         )
                     ) {
                         Text(text = "Edit")

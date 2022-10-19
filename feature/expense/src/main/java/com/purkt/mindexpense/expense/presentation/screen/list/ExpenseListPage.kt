@@ -191,6 +191,7 @@ private fun BaseExpenseListPage(
                                 items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
                                     ExpenseCardInfo(
                                         cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
+                                        onEditExpense = { startAddActivity(context, expense.id) },
                                         onDeleteCard = { targetStateToDelete = expense }
                                     )
                                 }
@@ -273,8 +274,11 @@ private fun BaseExpenseListPage(
     }
 }
 
-private fun startAddActivity(context: Context) {
+private fun startAddActivity(context: Context, targetExpenseId: Int? = null) {
     val intent = Intent(context, ExpenseAddActivity::class.java)
+    targetExpenseId?.let {
+        intent.putExtra(ExpenseAddActivity.INTENT_INTEGER_EXPENSE_ID, it)
+    }
     context.startActivity(intent)
 }
 
