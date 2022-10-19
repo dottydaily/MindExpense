@@ -1,3 +1,4 @@
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.Configuration
@@ -42,6 +43,7 @@ fun ExpenseAddPage(
     val addInfo by viewModel.addInfo
     val addExpenseStatus by viewModel.addStatusState
     BaseExpenseAddPage(
+        isUpdate = targetExpenseId != null,
         addInfo = addInfo,
         addExpenseStatus = addExpenseStatus,
         onGetDateString = viewModel::getDateString,
@@ -53,6 +55,7 @@ fun ExpenseAddPage(
 
 @Composable
 private fun BaseExpenseAddPage(
+    isUpdate: Boolean = false,
     addInfo: ExpenseAddInfoState,
     addExpenseStatus: AddExpenseStatus,
     onGetDateString: (dayOfMonth: Int, monthValue: Int, year: Int) -> String? = { _, _, _ -> "" },
@@ -96,7 +99,7 @@ private fun BaseExpenseAddPage(
                 Text(
                     modifier = Modifier
                         .align(Alignment.CenterStart),
-                    text = "Add new expense",
+                    text = if (isUpdate) "Edit expense" else "Add new expense",
                     color = MaterialTheme.colors.onPrimary,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
@@ -213,6 +216,7 @@ private fun BaseExpenseAddPage(
                                 }
                                 TimePickerDialog(
                                     currentContext,
+                                    com.google.android.material.R.style.Theme_MaterialComponents_Dialog_Alert,
                                     { _, hour, minute ->
                                         val newTime = onGetTimeString.invoke(hour, minute)
                                         if (newTime != null) {
@@ -221,7 +225,7 @@ private fun BaseExpenseAddPage(
                                     },
                                     currentTime.hour,
                                     currentTime.minute,
-                                    false
+                                    true
                                 ).show()
                             }
                     ) {
@@ -284,6 +288,20 @@ private fun PreviewExpenseAddPage() {
     val addInfo = ExpenseAddInfoState()
     MindExpenseTheme {
         BaseExpenseAddPage(
+            addInfo = addInfo,
+            addExpenseStatus = AddExpenseStatus.Idle
+        )
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewExpenseAddPageEditMode() {
+    val addInfo = ExpenseAddInfoState()
+    MindExpenseTheme {
+        BaseExpenseAddPage(
+            isUpdate = true,
             addInfo = addInfo,
             addExpenseStatus = AddExpenseStatus.Idle
         )
