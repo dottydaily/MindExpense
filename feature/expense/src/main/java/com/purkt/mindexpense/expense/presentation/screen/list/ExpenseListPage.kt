@@ -161,7 +161,7 @@ private fun BaseExpenseListPage(
                         ) {
                             TotalAmountBox(
                                 modifier = Modifier
-                                    .padding(24.dp)
+                                    .padding(16.dp)
                                     .align(Alignment.Center),
                                 totalAmount = totalAmount,
                                 currency = totalCurrency,

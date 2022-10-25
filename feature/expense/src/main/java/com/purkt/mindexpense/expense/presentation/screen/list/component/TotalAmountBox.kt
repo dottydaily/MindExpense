@@ -37,7 +37,7 @@ fun TotalAmountBox(
         Text(
             modifier = Modifier
                 .padding(16.dp),
-            text = "$totalAmountString $targetCurrency",
+            text = "$targetCurrency $totalAmountString",
             style = MaterialTheme.typography.h4,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 1

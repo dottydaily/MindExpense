@@ -20,6 +20,7 @@ class MainActivity : ComponentActivity() {
             MindExpenseTheme {
                 val items = listOf(
                     NavGraphRoute.Expense,
+                    NavGraphRoute.Monthly,
                     NavGraphRoute.Setting
                 )
                 MainPage(

@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -92,7 +95,7 @@ fun ExpenseCardInfo(
                     val dateTimeFormatter = DateTimeFormatter.ofPattern("H:mm")
                     val dateTimeString = "Time : ${dateTimeFormatter.format(expense.dateTime)}"
                     Text(
-                        text = "$amountFormatted $currencyDisplayName",
+                        text = "$currencyDisplayName $amountFormatted",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1
@@ -120,7 +123,14 @@ fun ExpenseCardInfo(
                             contentColor = MaterialTheme.colors.error
                         )
                     ) {
-                        Text(text = "Delete")
+                        Icon(
+                            modifier = Modifier
+                                .size(18.dp),
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Remove icon for button"
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = "Remove")
                     }
                     TextButton(
                         modifier = Modifier
@@ -132,6 +142,13 @@ fun ExpenseCardInfo(
                             contentColor = contentColor
                         )
                     ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(18.dp),
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Edit icon for button"
+                        )
+                        Spacer(Modifier.width(8.dp))
                         Text(text = "Edit")
                     }
                 }
@@ -155,7 +172,9 @@ private fun PreviewExpenseCardInfoCollapse() {
         isExpanded = false
     )
     MindExpenseTheme {
-        ExpenseCardInfo(cardDetail = cardDetail)
+        Surface {
+            ExpenseCardInfo(cardDetail = cardDetail)
+        }
     }
 }
 
@@ -174,6 +193,8 @@ private fun PreviewExpenseCardInfoExpanded() {
         isExpanded = true
     )
     MindExpenseTheme {
-        ExpenseCardInfo(cardDetail = cardDetail)
+        Surface {
+            ExpenseCardInfo(cardDetail = cardDetail)
+        }
     }
 }

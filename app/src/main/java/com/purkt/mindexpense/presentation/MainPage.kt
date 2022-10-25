@@ -17,6 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.purkt.mindexpense.expense.presentation.navigation.addExpenseListTopLevel
+import com.purkt.mindexpense.monthly.presentation.navgraph.addMonthlyListTopLevel
 import com.purkt.mindexpense.settings.presentation.navgraph.addSettingTopLevel
 import com.purkt.navigation.presentation.NavGraphRoute
 import com.purkt.navigation.presentation.Navigator
@@ -71,6 +72,7 @@ fun MainPage(
             startDestination = NavGraphRoute.Expense.route
         ) {
             addExpenseListTopLevel(navigator)
+            addMonthlyListTopLevel(navigator)
             addSettingTopLevel(navigator)
         }
     }
