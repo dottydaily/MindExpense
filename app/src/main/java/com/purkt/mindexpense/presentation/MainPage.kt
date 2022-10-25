@@ -4,8 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,9 +17,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.purkt.mindexpense.expense.presentation.navigation.addExpenseListTopLevel
+import com.purkt.mindexpense.settings.presentation.navgraph.addSettingTopLevel
 import com.purkt.navigation.presentation.NavGraphRoute
 import com.purkt.navigation.presentation.Navigator
-import com.purkt.setting.presentation.navgraph.addSettingTopLevel
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 
 @OptIn(ExperimentalAnimationApi::class)

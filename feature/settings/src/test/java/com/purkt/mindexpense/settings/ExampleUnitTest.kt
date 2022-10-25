@@ -1,4 +1,4 @@
-package com.purkt.setting
+package com.purkt.mindexpense.settings
 
 import org.junit.Test
 
