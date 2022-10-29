@@ -1,7 +1,7 @@
 package com.purkt.database.domain.usecase
 
-import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.repo.ExpenseRepository
+import com.purkt.model.domain.model.Expense
 import javax.inject.Inject
 
 class UpdateExpenseUseCase @Inject constructor(

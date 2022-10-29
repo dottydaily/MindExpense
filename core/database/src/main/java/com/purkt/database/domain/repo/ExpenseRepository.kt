@@ -1,6 +1,6 @@
 package com.purkt.database.domain.repo
 
-import com.purkt.database.domain.model.Expense
+import com.purkt.model.domain.model.Expense
 import kotlinx.coroutines.flow.Flow
 
 interface ExpenseRepository {

@@ -24,16 +24,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.purkt.common.domain.util.ComposeLifecycle
-import com.purkt.database.domain.model.Expense
-import com.purkt.mindexpense.expense.domain.model.DailyExpenses
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
-import com.purkt.mindexpense.expense.domain.model.MonthlyExpenses
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
 import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
 import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRangeBox
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
+import com.purkt.model.domain.model.DailyExpenses
+import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.ExpenseSummary
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -81,12 +81,12 @@ fun ExpenseListPage(
         viewModel.resetDeleteStatusToIdle()
     }
     val isLoading by viewModel.loadingState
-    val monthlyExpenses by viewModel.monthlyExpensesFlow.collectAsStateWithLifecycle()
+    val monthlyExpenses by viewModel.expenseSummaryFlow.collectAsStateWithLifecycle()
     val totalAmount by viewModel.totalAmountState
     val totalCurrency by viewModel.totalCurrencyStringState
     BaseExpenseListPage(
         isLoading = isLoading,
-        monthlyExpenses = monthlyExpenses,
+        expenseSummary = monthlyExpenses,
         totalAmount = totalAmount,
         totalCurrency = totalCurrency,
         onDeleteCard = viewModel::deleteExpense,
@@ -98,7 +98,7 @@ fun ExpenseListPage(
 @Composable
 private fun BaseExpenseListPage(
     isLoading: Boolean = true,
-    monthlyExpenses: MonthlyExpenses?,
+    expenseSummary: ExpenseSummary?,
     totalAmount: Double,
     totalCurrency: String,
     onDeleteCard: (Expense) -> Unit = {},
@@ -150,7 +150,7 @@ private fun BaseExpenseListPage(
                         )
                     }
                 } else {
-                    if (monthlyExpenses != null && monthlyExpenses.expensesByDate.isNotEmpty()) {
+                    if (expenseSummary != null && expenseSummary.expensesByDate.isNotEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -173,9 +173,8 @@ private fun BaseExpenseListPage(
                                 .fillMaxWidth()
                                 .weight(1f)
                         ) {
-                            monthlyExpenses.expensesByDate.forEach { (localDate, dailyExpenses) ->
+                            expenseSummary.expensesByDate.forEach { (localDate, dailyExpenses) ->
                                 val dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
-                                val dailyAmount = dailyExpenses.expenses.sumOf { it.amount }
                                 item {
                                     Row(
                                         modifier = Modifier.padding(24.dp)
@@ -217,7 +216,7 @@ private fun BaseExpenseListPage(
                     }
                 }
 
-                if (monthlyExpenses != null) {
+                if (expenseSummary != null) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -226,8 +225,8 @@ private fun BaseExpenseListPage(
                         MonthRangeBox(
                             modifier = Modifier
                                 .align(Alignment.Center),
-                            startDate = monthlyExpenses.startDate,
-                            endDate = monthlyExpenses.endDate,
+                            startDate = expenseSummary.startDate,
+                            endDate = expenseSummary.endDate,
                             contentColor = MaterialTheme.colors.onPrimary,
                             onClickLeftArrow = onChoosePreviousMonth,
                             onClickRightArrow = onChooseNextMonth
@@ -344,7 +343,7 @@ private fun PreviewExpenseScreenPage() {
             )
         )
     )
-    val monthlyExpenses = MonthlyExpenses(
+    val expenseSummary = ExpenseSummary(
         expensesByDate = mockData,
         startDate = LocalDate.of(2022, Month.JULY, 25),
         endDate = LocalDate.of(2022, Month.AUGUST, 24)
@@ -352,7 +351,7 @@ private fun PreviewExpenseScreenPage() {
     val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     MindExpenseTheme {
-        BaseExpenseListPage(false, monthlyExpenses, totalAmount, totalCurrency)
+        BaseExpenseListPage(false, expenseSummary, totalAmount, totalCurrency)
     }
 }
 
@@ -360,12 +359,12 @@ private fun PreviewExpenseScreenPage() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseScreenPageEmpty() {
-    val monthlyExpenses = MonthlyExpenses(
+    val expenseSummary = ExpenseSummary(
         expensesByDate = mutableMapOf(),
         startDate = LocalDate.of(2022, Month.JULY, 25),
         endDate = LocalDate.of(2022, Month.AUGUST, 24)
     )
     MindExpenseTheme {
-        BaseExpenseListPage(false, monthlyExpenses, 0.0, "THB")
+        BaseExpenseListPage(false, expenseSummary, 0.0, "THB")
     }
 }

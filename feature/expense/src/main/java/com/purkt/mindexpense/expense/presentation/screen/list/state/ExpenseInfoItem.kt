@@ -3,7 +3,7 @@ package com.purkt.mindexpense.expense.presentation.screen.list.state
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.purkt.database.domain.model.Expense
+import com.purkt.model.domain.model.Expense
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

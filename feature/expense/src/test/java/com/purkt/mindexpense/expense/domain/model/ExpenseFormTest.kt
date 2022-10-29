@@ -1,6 +1,6 @@
 package com.purkt.mindexpense.expense.domain.model
 
-import com.purkt.database.domain.model.Expense
+import com.purkt.model.domain.model.Expense
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDateTime

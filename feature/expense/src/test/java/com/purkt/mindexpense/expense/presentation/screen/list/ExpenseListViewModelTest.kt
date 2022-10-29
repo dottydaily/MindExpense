@@ -1,10 +1,9 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
-import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.usecase.DeleteExpenseUseCase
 import com.purkt.database.domain.usecase.FindAllExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
-import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseCardInfoState
+import com.purkt.model.domain.model.Expense
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.spyk
@@ -65,7 +64,7 @@ class ExpenseListViewModelTest {
 
             // Then
             val expected = mockExpenses.map {
-                ExpenseCardInfoState(it)
+                ExpenseCardInfoItem(it)
             }
             val actual = viewModel.cardInfoStateFlow.value
             actual.forEachIndexed { index, expenseCardInfoState ->

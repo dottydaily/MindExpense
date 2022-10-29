@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.usecase.DeleteExpenseUseCase
 import com.purkt.database.domain.usecase.FindAllExpensesUseCase
-import com.purkt.mindexpense.expense.domain.model.DailyExpenses
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
-import com.purkt.mindexpense.expense.domain.model.MonthlyExpenses
+import com.purkt.model.domain.model.DailyExpenses
+import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.ExpenseSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ class ExpenseListViewModel @Inject constructor(
     private val deleteExpenseUseCase: DeleteExpenseUseCase
 ) : ViewModel() {
     private val _loadingState = mutableStateOf(true)
-    private val _monthlyExpenses = MutableStateFlow<MonthlyExpenses?>(null)
+    private val _expenseSummary = MutableStateFlow<ExpenseSummary?>(null)
     private val _deleteStatusState = mutableStateOf<DeleteExpenseStatus>(DeleteExpenseStatus.Idle)
     private val _totalAmountState = mutableStateOf(0.0)
     private val _totalCurrencyState = mutableStateOf("")
@@ -50,9 +50,9 @@ class ExpenseListViewModel @Inject constructor(
     val loadingState: State<Boolean> = _loadingState
 
     /**
-     * A State of the [MonthlyExpenses] to show in UI.
+     * A State of the [ExpenseSummary] to show in UI.
      */
-    val monthlyExpensesFlow: StateFlow<MonthlyExpenses?> = _monthlyExpenses
+    val expenseSummaryFlow: StateFlow<ExpenseSummary?> = _expenseSummary
 
     /**
      * A State of delete status.
@@ -72,13 +72,13 @@ class ExpenseListViewModel @Inject constructor(
     /**
      * Start fetching all expense data from database.
      *
-     * This method will observe database and emit the updated data to [monthlyExpensesFlow].
+     * This method will observe database and emit the updated data to [expenseSummaryFlow].
      */
     fun fetchAllExpenses() = viewModelScope.launch(ioDispatcher) {
         _loadingState.value = true
         findAllExpensesUseCase.invoke()
             .transform { expensesFromDb ->
-                val thisMonthExpenses = mapToMonthlyExpenses(expensesFromDb)
+                val thisMonthExpenses = mapToExpenseSummary(expensesFromDb)
                 emit(thisMonthExpenses)
             }
             .collect { thisMonthExpenses ->
@@ -88,7 +88,7 @@ class ExpenseListViewModel @Inject constructor(
                     ?.expenses?.firstOrNull()
                     ?.currency?.currencyCode
                     ?: ""
-                _monthlyExpenses.value = thisMonthExpenses
+                _expenseSummary.value = thisMonthExpenses
                 if (_loadingState.value) _loadingState.value = false
             }
     }
@@ -96,12 +96,12 @@ class ExpenseListViewModel @Inject constructor(
     /**
      * Delete the target expense from database and UI.
      *
-     * This method will trigger update on [monthlyExpensesFlow] and [deleteStatusState]
+     * This method will trigger update on [expenseSummaryFlow] and [deleteStatusState]
      *
      * @param expense The target [Expense] which it will be deleted.
      */
     fun deleteExpense(expense: Expense) = viewModelScope.launch(ioDispatcher) {
-        val expensesByDate = _monthlyExpenses.value?.expensesByDate
+        val expensesByDate = _expenseSummary.value?.expensesByDate
 
         val targetDate = expense.dateTime.toLocalDate()
         val targetDailyExpenses = expensesByDate?.get(targetDate)
@@ -121,15 +121,15 @@ class ExpenseListViewModel @Inject constructor(
                 }
 
                 // Update each information )
-                val newTotalAmount = _monthlyExpenses.value?.expensesByDate?.values
+                val newTotalAmount = _expenseSummary.value?.expensesByDate?.values
                     ?.sumOf { dailyExpense -> dailyExpense.getTotalAmount() }
                     ?: 0.0
                 _totalAmountState.value = newTotalAmount
-                _totalCurrencyState.value = _monthlyExpenses.value?.expensesByDate?.values?.firstOrNull()
+                _totalCurrencyState.value = _expenseSummary.value?.expensesByDate?.values?.firstOrNull()
                     ?.expenses?.firstOrNull()
                     ?.currency?.currencyCode
                     ?: ""
-                _monthlyExpenses.value = _monthlyExpenses.value?.copy()
+                _expenseSummary.value = _expenseSummary.value?.copy()
                 _deleteStatusState.value = DeleteExpenseStatus.Success
             } else {
                 _deleteStatusState.value = DeleteExpenseStatus.Failed
@@ -156,14 +156,23 @@ class ExpenseListViewModel @Inject constructor(
         fetchAllExpenses()
     }
 
-    private fun mapToMonthlyExpenses(list: List<Expense>): MonthlyExpenses {
+    private fun mapToExpenseSummary(list: List<Expense>): ExpenseSummary {
         val expensesGroupByDate = list.sortedByDescending { it.dateTime }.groupBy { it.dateTime.toLocalDate() }
-            .mapValues { DailyExpenses(it.value.toMutableList(), it.key) }
+            .mapValues {
+                DailyExpenses(
+                    it.value.toMutableList(),
+                    it.key
+                )
+            }
 
         val filteredExpenses = expensesGroupByDate
             .filterKeys { it.isLocalDateInRangeOf(startDate, endDate) }.toMutableMap()
 
-        return MonthlyExpenses(expensesByDate = filteredExpenses, startDate = startDate, endDate = endDate)
+        return ExpenseSummary(
+            expensesByDate = filteredExpenses,
+            startDate = startDate,
+            endDate = endDate
+        )
     }
 
     private fun LocalDate.isLocalDateInRangeOf(startDate: LocalDate, endDate: LocalDate): Boolean {

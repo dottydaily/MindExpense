@@ -3,8 +3,8 @@ package com.purkt.database.data.impl.repo
 import com.purkt.database.data.dao.ExpenseDao
 import com.purkt.database.data.entity.ExpenseEntity
 import com.purkt.database.domain.exception.DatabaseOperationFailedException
-import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.repo.ExpenseRepository
+import com.purkt.model.domain.model.Expense
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.transform

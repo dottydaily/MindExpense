@@ -19,8 +19,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.purkt.database.domain.model.Expense
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
+import com.purkt.model.domain.model.Expense
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.text.DecimalFormat
 import java.time.LocalDateTime
@@ -31,7 +31,7 @@ import java.util.*
 fun ExpenseCardInfo(
     cardDetail: ExpenseInfoItem.ExpenseCardDetail,
     onEditExpense: (expenseId: Int) -> Unit = {},
-    onDeleteCard: (Expense) -> Unit = {}
+    onDeleteCard: (com.purkt.model.domain.model.Expense) -> Unit = {}
 ) {
     val expense = cardDetail.expense
     val isExpanded = cardDetail.isExpanded

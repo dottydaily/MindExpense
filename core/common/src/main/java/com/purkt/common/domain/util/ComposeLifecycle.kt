@@ -28,7 +28,7 @@ object ComposeLifecycle {
         val currentOnDestroy = rememberUpdatedState(newValue = onDestroy)
         val currentOnAny = rememberUpdatedState(newValue = onAny)
         DisposableEffect(key1 = lifecycleOwner) {
-            val observer = LifecycleEventObserver { owner, event ->
+            val observer = LifecycleEventObserver { _, event ->
                 when (event) {
                     Lifecycle.Event.ON_CREATE -> currentOnCreate.value?.invoke()
                     Lifecycle.Event.ON_START -> currentOnStart.value?.invoke()

@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.model.Expense
 import com.purkt.database.domain.usecase.AddExpenseUseCase
 import com.purkt.database.domain.usecase.FindExpenseByIdUseCase
 import com.purkt.database.domain.usecase.UpdateExpenseUseCase

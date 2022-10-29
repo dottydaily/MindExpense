@@ -1,6 +1,5 @@
-package com.purkt.mindexpense.expense.domain.model
+package com.purkt.model.domain.model
 
-import com.purkt.database.domain.model.Expense
 import java.time.LocalDate
 
 data class DailyExpenses(

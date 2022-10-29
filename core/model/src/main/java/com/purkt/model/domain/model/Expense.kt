@@ -1,4 +1,4 @@
-package com.purkt.database.domain.model
+package com.purkt.model.domain.model
 
 import java.time.LocalDateTime
 import java.util.*

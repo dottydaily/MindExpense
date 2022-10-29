@@ -3,7 +3,7 @@ package com.purkt.database.data.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.purkt.database.domain.model.Expense
+import com.purkt.model.domain.model.Expense
 import java.time.LocalDateTime
 import java.util.Currency
 

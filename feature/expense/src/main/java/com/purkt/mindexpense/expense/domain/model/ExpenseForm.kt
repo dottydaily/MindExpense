@@ -1,7 +1,7 @@
 package com.purkt.mindexpense.expense.domain.model
 
 import com.purkt.common.domain.util.CurrencyUtil
-import com.purkt.database.domain.model.Expense
+import com.purkt.model.domain.model.Expense
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
