@@ -1,7 +1,7 @@
 package com.purkt.mindexpense.expense.domain.model
 
 import com.purkt.common.domain.util.CurrencyUtil
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -54,12 +54,12 @@ class ExpenseForm(
     }
 
     /**
-     * Validate data and create [Expense] if all information is valid.
-     * @return Return the target [Expense] if data is valid. Otherwise, return null.
+     * Validate data and create [IndividualExpense] if all information is valid.
+     * @return Return the target [IndividualExpense] if data is valid. Otherwise, return null.
      */
-    fun createExpenseOrNull(): Expense? {
+    fun createExpenseOrNull(): IndividualExpense? {
         return if (isTitleValid() && isAmountValid()) {
-            Expense(
+            IndividualExpense(
                 id = id,
                 title = title,
                 description = description,

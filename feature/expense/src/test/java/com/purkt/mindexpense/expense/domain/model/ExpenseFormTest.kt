@@ -1,6 +1,6 @@
 package com.purkt.mindexpense.expense.domain.model
 
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDateTime
@@ -111,7 +111,7 @@ class ExpenseFormTest {
 
         // Then
         val expectedDateTime = LocalDateTime.of(mockForm.date, mockForm.time)
-        val expected = Expense(
+        val expected = IndividualExpense(
             id = mockForm.id,
             title = mockForm.title,
             description = mockForm.description,

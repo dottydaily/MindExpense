@@ -3,7 +3,7 @@ package com.purkt.model.domain.model
 import java.time.LocalDate
 
 data class DailyExpenses(
-    val expenses: MutableList<Expense>,
+    val expenses: MutableList<IndividualExpense>,
     val date: LocalDate
 ) {
     fun getTotalAmount(): Double {

@@ -1,25 +1,25 @@
 package com.purkt.database.data.impl.repo
 
-import com.purkt.database.data.dao.ExpenseDao
-import com.purkt.database.data.entity.ExpenseEntity
+import com.purkt.database.data.dao.IndividualExpenseDao
+import com.purkt.database.data.entity.IndividualExpenseEntity
 import com.purkt.database.domain.exception.DatabaseOperationFailedException
-import com.purkt.database.domain.repo.ExpenseRepository
-import com.purkt.model.domain.model.Expense
+import com.purkt.database.domain.repo.IndividualExpenseRepository
+import com.purkt.model.domain.model.IndividualExpense
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
 
-class ExpenseRepositoryImpl @Inject constructor(
-    private val dao: ExpenseDao
-) : ExpenseRepository {
-    override suspend fun findAllExpenses(): Flow<List<Expense>> {
+class IndividualExpenseRepositoryImpl @Inject constructor(
+    private val dao: IndividualExpenseDao
+) : IndividualExpenseRepository {
+    override suspend fun findAllExpenses(): Flow<List<IndividualExpense>> {
         return doDatabaseOperation(failedResult = emptyFlow()) {
             val targetFlow = dao.findAll()
                 .transform { entities ->
                     val targetList = entities.map {
-                        ExpenseEntity.mapToDomainModel(it)
+                        IndividualExpenseEntity.mapToDomainModel(it)
                     }
                     emit(targetList)
                 }
@@ -28,7 +28,7 @@ class ExpenseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun findExpenseById(id: Int): Expense? {
+    override suspend fun findExpenseById(id: Int): IndividualExpense? {
         return doDatabaseOperation(failedResult = null) {
             val target = dao.findById(id)
                 ?: throw DatabaseOperationFailedException(
@@ -36,7 +36,7 @@ class ExpenseRepositoryImpl @Inject constructor(
                     description = "Expense isn't found. (ID=$id)"
                 )
 
-            ExpenseEntity.mapToDomainModel(target)
+            IndividualExpenseEntity.mapToDomainModel(target)
         }
     }
 
@@ -46,10 +46,10 @@ class ExpenseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addExpense(vararg expenses: Expense): Boolean {
+    override suspend fun addExpense(vararg expenses: IndividualExpense): Boolean {
         return doDatabaseOperation(failedResult = false) {
             val newEntities = expenses.map {
-                ExpenseEntity.mapFromDomainModel(it)
+                IndividualExpenseEntity.mapFromDomainModel(it)
             }.toTypedArray()
 
             val insertedIdList = dao.insert(*newEntities)
@@ -64,10 +64,10 @@ class ExpenseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateExpense(vararg expenses: Expense): Boolean {
+    override suspend fun updateExpense(vararg expenses: IndividualExpense): Boolean {
         return doDatabaseOperation(failedResult = false) {
             val targetEntities = expenses.map {
-                ExpenseEntity.mapFromDomainModel(it)
+                IndividualExpenseEntity.mapFromDomainModel(it)
             }.toTypedArray()
             val totalUpdated = dao.update(*targetEntities)
             if (totalUpdated != expenses.size) {
@@ -81,10 +81,10 @@ class ExpenseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteExpense(vararg expenses: Expense): Boolean {
+    override suspend fun deleteExpense(vararg expenses: IndividualExpense): Boolean {
         return doDatabaseOperation(failedResult = false) {
             val targetEntities = expenses.map {
-                ExpenseEntity.mapFromDomainModel(it)
+                IndividualExpenseEntity.mapFromDomainModel(it)
             }.toTypedArray()
             val totalDeleted = dao.delete(*targetEntities)
             if (totalDeleted != expenses.size) {

@@ -3,7 +3,7 @@ package com.purkt.database.di
 import android.content.Context
 import androidx.room.Room
 import com.purkt.database.data.MindExpenseDatabase
-import com.purkt.database.data.dao.ExpenseDao
+import com.purkt.database.data.dao.IndividualExpenseDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,9 +25,9 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideExpenseDao(
+    fun provideIndividualExpenseDao(
         mindExpenseDatabase: MindExpenseDatabase
-    ): ExpenseDao {
-        return mindExpenseDatabase.expenseDao()
+    ): IndividualExpenseDao {
+        return mindExpenseDatabase.individualExpenseDao()
     }
 }

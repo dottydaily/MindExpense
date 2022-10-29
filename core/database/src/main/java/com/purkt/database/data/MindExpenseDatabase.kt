@@ -4,11 +4,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.purkt.database.data.converter.LocalDateTimeTypeConverter
-import com.purkt.database.data.dao.ExpenseDao
-import com.purkt.database.data.entity.ExpenseEntity
+import com.purkt.database.data.dao.IndividualExpenseDao
+import com.purkt.database.data.entity.IndividualExpenseEntity
 
 @Database(
-    entities = [ExpenseEntity::class],
+    entities = [IndividualExpenseEntity::class],
     version = 1,
     exportSchema = true
 )
@@ -17,5 +17,5 @@ abstract class MindExpenseDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME: String = "mind-expense-database"
     }
-    abstract fun expenseDao(): ExpenseDao
+    abstract fun individualExpenseDao(): IndividualExpenseDao
 }

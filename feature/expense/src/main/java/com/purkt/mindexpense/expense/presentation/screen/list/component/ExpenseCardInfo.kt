@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.text.DecimalFormat
 import java.time.LocalDateTime
@@ -31,7 +31,7 @@ import java.util.*
 fun ExpenseCardInfo(
     cardDetail: ExpenseInfoItem.ExpenseCardDetail,
     onEditExpense: (expenseId: Int) -> Unit = {},
-    onDeleteCard: (com.purkt.model.domain.model.Expense) -> Unit = {}
+    onDeleteCard: (com.purkt.model.domain.model.IndividualExpense) -> Unit = {}
 ) {
     val expense = cardDetail.expense
     val isExpanded = cardDetail.isExpanded
@@ -162,7 +162,7 @@ fun ExpenseCardInfo(
 @Composable
 private fun PreviewExpenseCardInfoCollapse() {
     val cardDetail = ExpenseInfoItem.ExpenseCardDetail(
-        Expense(
+        IndividualExpense(
             title = "LunchLunchLunchLunchLunch",
             description = "Eat lunch with friend at the mall near my home",
             amount = 699.00,
@@ -183,7 +183,7 @@ private fun PreviewExpenseCardInfoCollapse() {
 @Composable
 private fun PreviewExpenseCardInfoExpanded() {
     val cardDetail = ExpenseInfoItem.ExpenseCardDetail(
-        Expense(
+        IndividualExpense(
             title = "LunchLunchLunchLunchLunch",
             description = "Eat lunch with friend at the mall near my home",
             amount = 699.00,

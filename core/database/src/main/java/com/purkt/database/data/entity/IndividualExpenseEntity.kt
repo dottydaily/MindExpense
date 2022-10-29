@@ -3,12 +3,12 @@ package com.purkt.database.data.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import java.time.LocalDateTime
 import java.util.Currency
 
-@Entity(tableName = "expense")
-data class ExpenseEntity(
+@Entity(tableName = "individual_expense")
+data class IndividualExpenseEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id") val id: Int = 0,
     @ColumnInfo(name = "title") val title: String = "",
@@ -18,8 +18,8 @@ data class ExpenseEntity(
     @ColumnInfo(name = "date_time") val dateTime: LocalDateTime = LocalDateTime.now()
 ) {
     companion object {
-        fun mapFromDomainModel(domain: Expense): ExpenseEntity {
-            return ExpenseEntity(
+        fun mapFromDomainModel(domain: IndividualExpense): IndividualExpenseEntity {
+            return IndividualExpenseEntity(
                 id = domain.id,
                 title = domain.title,
                 description = domain.description,
@@ -29,8 +29,8 @@ data class ExpenseEntity(
             )
         }
 
-        fun mapToDomainModel(entity: ExpenseEntity): Expense {
-            return Expense(
+        fun mapToDomainModel(entity: IndividualExpenseEntity): IndividualExpense {
+            return IndividualExpense(
                 id = entity.id,
                 title = entity.title,
                 description = entity.description,

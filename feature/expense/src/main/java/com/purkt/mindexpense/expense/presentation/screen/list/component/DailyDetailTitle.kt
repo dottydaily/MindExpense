@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -24,7 +24,7 @@ import java.time.LocalDate
 @Composable
 fun DailyDetailTitle(
     modifier: Modifier = Modifier,
-    expenses: Collection<Expense>,
+    expenses: Collection<IndividualExpense>,
     dateDetail: ExpenseInfoItem.ExpenseDateDetail
 ) {
     val totalAmount = expenses.sumOf { it.amount }
@@ -68,7 +68,7 @@ fun PreviewDailyDetailTitle() {
     MindExpenseTheme {
         Surface {
             DailyDetailTitle(
-                expenses = listOf(Expense(amount = 20333.04)),
+                expenses = listOf(IndividualExpense(amount = 20333.04)),
                 dateDetail = ExpenseInfoItem.ExpenseDateDetail(
                     LocalDate.now()
                 )

@@ -32,7 +32,7 @@ import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRan
 import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.model.domain.model.DailyExpenses
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.ExpenseSummary
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
@@ -101,11 +101,11 @@ private fun BaseExpenseListPage(
     expenseSummary: ExpenseSummary?,
     totalAmount: Double,
     totalCurrency: String,
-    onDeleteCard: (Expense) -> Unit = {},
+    onDeleteCard: (IndividualExpense) -> Unit = {},
     onChoosePreviousMonth: () -> Unit = {},
     onChooseNextMonth: () -> Unit = {}
 ) {
-    var targetStateToDelete by remember { mutableStateOf<Expense?>(null) }
+    var targetStateToDelete by remember { mutableStateOf<IndividualExpense?>(null) }
 
     val primaryColor = MaterialTheme.colors.primary
     Surface(
@@ -290,7 +290,7 @@ private fun PreviewExpenseScreenPage() {
             first = LocalDate.of(2022, 7, 26),
             second = DailyExpenses(
                 expenses = mutableListOf(
-                    Expense(
+                    IndividualExpense(
                         id = 1,
                         title = "Breakfast",
                         description = "Eat breakfast with friend at the mall",
@@ -298,7 +298,7 @@ private fun PreviewExpenseScreenPage() {
                         currency = Currency.getInstance("THB"),
                         dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
                     ),
-                    Expense(
+                    IndividualExpense(
                         id = 2,
                         title = "Lunch",
                         description = "Eat lunch with friend at the mall",
@@ -314,7 +314,7 @@ private fun PreviewExpenseScreenPage() {
             first = LocalDate.of(2022, 7, 25),
             second = DailyExpenses(
                 expenses = mutableListOf(
-                    Expense(
+                    IndividualExpense(
                         id = 3,
                         title = "Dinner",
                         description = "Eat dinner with friend at the mall",
@@ -330,7 +330,7 @@ private fun PreviewExpenseScreenPage() {
             first = LocalDate.of(2022, 7, 24),
             second = DailyExpenses(
                 expenses = mutableListOf(
-                    Expense(
+                    IndividualExpense(
                         id = 4,
                         title = "Dinner",
                         description = "Eat dinner with friend at the mall",

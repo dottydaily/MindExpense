@@ -1,9 +1,9 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
-import com.purkt.database.domain.usecase.DeleteExpenseUseCase
-import com.purkt.database.domain.usecase.FindAllExpensesUseCase
+import com.purkt.database.domain.usecase.DeleteIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.FindAllIndividualExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.spyk
@@ -19,8 +19,8 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpenseListViewModelTest {
-    private val findAllExpensesUseCase: FindAllExpensesUseCase = mockk()
-    private val deleteExpenseUseCase: DeleteExpenseUseCase = mockk()
+    private val findAllIndividualExpensesUseCase: FindAllIndividualExpensesUseCase = mockk()
+    private val deleteIndividualExpenseUseCase: DeleteIndividualExpenseUseCase = mockk()
     private lateinit var testDispatcher: TestDispatcher
     private lateinit var viewModel: ExpenseListViewModel
 
@@ -30,8 +30,8 @@ class ExpenseListViewModelTest {
         Dispatchers.setMain(testDispatcher)
         viewModel = ExpenseListViewModel(
             ioDispatcher = testDispatcher,
-            findAllExpensesUseCase = findAllExpensesUseCase,
-            deleteExpenseUseCase = deleteExpenseUseCase
+            findAllExpensesUseCase = findAllIndividualExpensesUseCase,
+            deleteExpenseUseCase = deleteIndividualExpenseUseCase
         )
     }
 
@@ -45,13 +45,13 @@ class ExpenseListViewModelTest {
         runTest {
             // Given
             val mockExpenses = listOf(
-                Expense(id = 0),
-                Expense(id = 1)
+                IndividualExpense(id = 0),
+                IndividualExpense(id = 1)
             )
             val mockFlow = flow {
                 emit(mockExpenses)
             }
-            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
+            coEvery { findAllIndividualExpensesUseCase.invoke() } returns mockFlow
 
             assertTrue(viewModel.cardInfoStateFlow.value.isEmpty())
             assertTrue(viewModel.loadingState.value)
@@ -80,9 +80,9 @@ class ExpenseListViewModelTest {
         runTest {
             // Given
             val mockFlow = flow {
-                emit(emptyList<Expense>())
+                emit(emptyList<IndividualExpense>())
             }
-            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
+            coEvery { findAllIndividualExpensesUseCase.invoke() } returns mockFlow
 
             assertTrue(viewModel.cardInfoStateFlow.value.isEmpty())
             assertTrue(viewModel.loadingState.value)
@@ -117,13 +117,13 @@ class ExpenseListViewModelTest {
         runTest {
             // Given
             val mockExpenses = listOf(
-                Expense(id = 0),
-                Expense(id = 1)
+                IndividualExpense(id = 0),
+                IndividualExpense(id = 1)
             )
             val mockFlow = flow {
                 emit(mockExpenses)
             }
-            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
+            coEvery { findAllIndividualExpensesUseCase.invoke() } returns mockFlow
 
             // When
             viewModel.run {
@@ -159,14 +159,14 @@ class ExpenseListViewModelTest {
         runTest {
             // Given
             val mockExpenses = listOf(
-                Expense(id = 1),
-                Expense(id = 2)
+                IndividualExpense(id = 1),
+                IndividualExpense(id = 2)
             )
             val mockFlow = flow {
                 emit(mockExpenses)
             }
-            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
-            coEvery { deleteExpenseUseCase.invoke(any()) } returns true
+            coEvery { findAllIndividualExpensesUseCase.invoke() } returns mockFlow
+            coEvery { deleteIndividualExpenseUseCase.invoke(any()) } returns true
 
             // When
             viewModel.run {
@@ -192,14 +192,14 @@ class ExpenseListViewModelTest {
         runTest {
             // Given
             val mockExpenses = listOf(
-                Expense(id = 1),
-                Expense(id = 2)
+                IndividualExpense(id = 1),
+                IndividualExpense(id = 2)
             )
             val mockFlow = flow {
                 emit(mockExpenses)
             }
-            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
-            coEvery { deleteExpenseUseCase.invoke(any()) } returns false
+            coEvery { findAllIndividualExpensesUseCase.invoke() } returns mockFlow
+            coEvery { deleteIndividualExpenseUseCase.invoke(any()) } returns false
 
             // When
             viewModel.run {
@@ -225,14 +225,14 @@ class ExpenseListViewModelTest {
         runTest {
             // Given
             val mockExpenses = listOf(
-                Expense(id = 1),
-                Expense(id = 2)
+                IndividualExpense(id = 1),
+                IndividualExpense(id = 2)
             )
             val mockFlow = flow {
                 emit(mockExpenses)
             }
-            coEvery { findAllExpensesUseCase.invoke() } returns mockFlow
-            coEvery { deleteExpenseUseCase.invoke(any()) } returns false
+            coEvery { findAllIndividualExpensesUseCase.invoke() } returns mockFlow
+            coEvery { deleteIndividualExpenseUseCase.invoke(any()) } returns false
 
             // When
             viewModel.run {
@@ -240,7 +240,7 @@ class ExpenseListViewModelTest {
                 advanceUntilIdle()
             }
 
-            val targetState = ExpenseCardInfoState(Expense(id = 3))
+            val targetState = ExpenseCardInfoState(IndividualExpense(id = 3))
             viewModel.deleteExpense(targetState)
             advanceUntilIdle()
 

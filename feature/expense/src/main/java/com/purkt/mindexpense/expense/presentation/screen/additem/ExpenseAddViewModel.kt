@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.usecase.AddExpenseUseCase
-import com.purkt.database.domain.usecase.FindExpenseByIdUseCase
-import com.purkt.database.domain.usecase.UpdateExpenseUseCase
+import com.purkt.database.domain.usecase.AddIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.FindIndividualExpenseByIdUseCase
+import com.purkt.database.domain.usecase.UpdateIndividualExpenseUseCase
 import com.purkt.mindexpense.expense.domain.model.ExpenseForm
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
@@ -26,9 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpenseAddViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val findExpenseByIdUseCase: FindExpenseByIdUseCase,
-    private val addExpenseUseCase: AddExpenseUseCase,
-    private val updateExpenseUseCase: UpdateExpenseUseCase
+    private val findIndividualExpenseByIdUseCase: FindIndividualExpenseByIdUseCase,
+    private val addIndividualExpenseUseCase: AddIndividualExpenseUseCase,
+    private val updateIndividualExpenseUseCase: UpdateIndividualExpenseUseCase
 ) : ViewModel() {
     var addInfo = mutableStateOf(ExpenseAddInfoState())
 
@@ -38,7 +38,7 @@ class ExpenseAddViewModel @Inject constructor(
     private var isUpdatedExpense: Boolean = false
 
     fun loadExpenseId(id: Int) = viewModelScope.launch(ioDispatcher) {
-        val target = findExpenseByIdUseCase.invoke(id)
+        val target = findIndividualExpenseByIdUseCase.invoke(id)
         target?.let { expense ->
             addInfo.value.let { state ->
                 state.expenseId = id
@@ -80,14 +80,14 @@ class ExpenseAddViewModel @Inject constructor(
 
             if (isUpdatedExpense) {
                 isUpdatedExpense = false
-                val isUpdated = updateExpenseUseCase.invoke(targetExpense)
+                val isUpdated = updateIndividualExpenseUseCase.invoke(targetExpense)
 
                 if (!isUpdated) {
                     throw Exception("Can't update expense info to database : $targetExpense")
                 }
                 _addStatusState.value = AddExpenseStatus.Success
             } else {
-                val isAdded = addExpenseUseCase.invoke(targetExpense)
+                val isAdded = addIndividualExpenseUseCase.invoke(targetExpense)
 
                 if (!isAdded) {
                     throw Exception("Can't add expense info to database")

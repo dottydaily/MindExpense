@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.usecase.DeleteExpenseUseCase
-import com.purkt.database.domain.usecase.FindAllExpensesUseCase
+import com.purkt.database.domain.usecase.DeleteIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.FindAllIndividualExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.model.domain.model.DailyExpenses
-import com.purkt.model.domain.model.Expense
+import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.ExpenseSummary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -23,8 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val findAllExpensesUseCase: FindAllExpensesUseCase,
-    private val deleteExpenseUseCase: DeleteExpenseUseCase
+    private val findAllIndividualExpensesUseCase: FindAllIndividualExpensesUseCase,
+    private val deleteIndividualExpenseUseCase: DeleteIndividualExpenseUseCase
 ) : ViewModel() {
     private val _loadingState = mutableStateOf(true)
     private val _expenseSummary = MutableStateFlow<ExpenseSummary?>(null)
@@ -76,7 +76,7 @@ class ExpenseListViewModel @Inject constructor(
      */
     fun fetchAllExpenses() = viewModelScope.launch(ioDispatcher) {
         _loadingState.value = true
-        findAllExpensesUseCase.invoke()
+        findAllIndividualExpensesUseCase.invoke()
             .transform { expensesFromDb ->
                 val thisMonthExpenses = mapToExpenseSummary(expensesFromDb)
                 emit(thisMonthExpenses)
@@ -98,9 +98,9 @@ class ExpenseListViewModel @Inject constructor(
      *
      * This method will trigger update on [expenseSummaryFlow] and [deleteStatusState]
      *
-     * @param expense The target [Expense] which it will be deleted.
+     * @param expense The target [IndividualExpense] which it will be deleted.
      */
-    fun deleteExpense(expense: Expense) = viewModelScope.launch(ioDispatcher) {
+    fun deleteExpense(expense: IndividualExpense) = viewModelScope.launch(ioDispatcher) {
         val expensesByDate = _expenseSummary.value?.expensesByDate
 
         val targetDate = expense.dateTime.toLocalDate()
@@ -110,7 +110,7 @@ class ExpenseListViewModel @Inject constructor(
         if (targetExpense == null) {
             _deleteStatusState.value = DeleteExpenseStatus.DataNotFoundInUi
         } else {
-            val isDeleted = deleteExpenseUseCase.invoke(targetExpense)
+            val isDeleted = deleteIndividualExpenseUseCase.invoke(targetExpense)
             if (isDeleted) {
                 // Remove expense from the target daily expenses
                 targetDailyExpenses.expenses.removeIf { it.id == expense.id }
@@ -156,7 +156,7 @@ class ExpenseListViewModel @Inject constructor(
         fetchAllExpenses()
     }
 
-    private fun mapToExpenseSummary(list: List<Expense>): ExpenseSummary {
+    private fun mapToExpenseSummary(list: List<IndividualExpense>): ExpenseSummary {
         val expensesGroupByDate = list.sortedByDescending { it.dateTime }.groupBy { it.dateTime.toLocalDate() }
             .mapValues {
                 DailyExpenses(
