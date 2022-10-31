@@ -1,16 +1,25 @@
 package com.purkt.database.data
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.purkt.database.data.converter.LocalDateTimeTypeConverter
 import com.purkt.database.data.dao.IndividualExpenseDao
 import com.purkt.database.data.entity.IndividualExpenseEntity
+import com.purkt.database.data.migrationspec.MindExpenseAutoMigrationSpec
 
 @Database(
     entities = [IndividualExpenseEntity::class],
-    version = 1,
-    exportSchema = true
+    version = 2,
+    exportSchema = true,
+    autoMigrations = [
+        AutoMigration(
+            from = 1,
+            to = 2,
+            spec = MindExpenseAutoMigrationSpec.AutoMigrationFromVersion1To2::class
+        )
+    ]
 )
 @TypeConverters(LocalDateTimeTypeConverter::class)
 abstract class MindExpenseDatabase : RoomDatabase() {
