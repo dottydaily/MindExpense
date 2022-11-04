@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.usecase.DeleteIndividualExpenseUseCase
-import com.purkt.database.domain.usecase.FindAllIndividualExpensesUseCase
+import com.purkt.database.domain.usecase.individualexpense.DeleteIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.individualexpense.FindAllIndividualExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.model.domain.model.DailyExpenses
-import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.ExpenseSummary
+import com.purkt.model.domain.model.IndividualExpense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
-import com.purkt.database.domain.usecase.AddIndividualExpenseUseCase
-import com.purkt.database.domain.usecase.FindIndividualExpenseByIdUseCase
-import com.purkt.database.domain.usecase.UpdateIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.individualexpense.AddIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.individualexpense.FindIndividualExpenseByIdUseCase
+import com.purkt.database.domain.usecase.individualexpense.UpdateIndividualExpenseUseCase
 import com.purkt.mindexpense.expense.domain.model.ExpenseForm
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState

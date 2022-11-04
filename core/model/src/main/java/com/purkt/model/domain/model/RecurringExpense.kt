@@ -15,23 +15,28 @@ data class RecurringExpense(
     override var currency: Currency = Currency.getInstance(Locale.getDefault()),
     val dayOfMonth: Int,
     val time: LocalTime
-): Expense {
-    fun mapToExpense(
+) : Expense {
+    fun mapToIndividualExpense(
         targetMonth: Month,
         targetYear: Int,
         targetTime: LocalTime
     ): IndividualExpense? {
-        try {
+        return try {
             val targetLocalDateTime = with(targetTime) {
                 LocalDateTime.of(targetYear, targetMonth, 1, hour, minute, second)
             }.with(TemporalAdjusters.lastDayOfMonth())
 
-            return IndividualExpense(
-                id = 0
+            IndividualExpense(
+                id = IndividualExpense.ID_FOR_RECURRING_EXPENSE,
+                title = title,
+                description = description,
+                amount = amount,
+                currency = currency,
+                dateTime = targetLocalDateTime
             )
         } catch (e: Throwable) {
             Timber.e("Error when try to mapping RecurringExpense to Expense : ${e.message}")
-            return null
+            null
         }
     }
 }

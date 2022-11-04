@@ -1,4 +1,4 @@
-package com.purkt.database.domain.usecase
+package com.purkt.database.domain.usecase.individualexpense
 
 import com.purkt.database.domain.repo.IndividualExpenseRepository
 import com.purkt.model.domain.model.IndividualExpense

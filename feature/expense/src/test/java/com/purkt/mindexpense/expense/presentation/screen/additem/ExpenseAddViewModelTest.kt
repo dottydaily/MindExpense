@@ -1,6 +1,6 @@
 package com.purkt.mindexpense.expense.presentation.screen.additem
 
-import com.purkt.database.domain.usecase.AddIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.recurringexpense.AddRecurringExpenseUseCase
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
 import io.mockk.coEvery
@@ -26,7 +26,7 @@ class ExpenseAddViewModelTest {
     private val mockTimeString = DateTimeFormatter.ofPattern(ExpenseAddInfoState.TIME_PATTERN)
         .format(LocalTime.of(2, 36))
 
-    private val addIndividualExpenseUseCase: AddIndividualExpenseUseCase = mockk()
+    private val addIndividualExpenseUseCase: AddRecurringExpenseUseCase = mockk()
     private lateinit var testDispatcher: TestDispatcher
     private lateinit var viewModel: ExpenseAddViewModel
 

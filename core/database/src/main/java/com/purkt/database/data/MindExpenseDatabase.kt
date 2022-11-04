@@ -5,12 +5,15 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.purkt.database.data.converter.LocalDateTimeTypeConverter
+import com.purkt.database.data.converter.LocalTimeTypeConverter
 import com.purkt.database.data.dao.IndividualExpenseDao
+import com.purkt.database.data.dao.RecurringExpenseDao
 import com.purkt.database.data.entity.IndividualExpenseEntity
+import com.purkt.database.data.entity.RecurringExpenseEntity
 import com.purkt.database.data.migrationspec.MindExpenseAutoMigrationSpec
 
 @Database(
-    entities = [IndividualExpenseEntity::class],
+    entities = [IndividualExpenseEntity::class, RecurringExpenseEntity::class],
     version = 2,
     exportSchema = true,
     autoMigrations = [
@@ -21,10 +24,11 @@ import com.purkt.database.data.migrationspec.MindExpenseAutoMigrationSpec
         )
     ]
 )
-@TypeConverters(LocalDateTimeTypeConverter::class)
+@TypeConverters(LocalDateTimeTypeConverter::class, LocalTimeTypeConverter::class)
 abstract class MindExpenseDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME: String = "mind-expense-database"
     }
     abstract fun individualExpenseDao(): IndividualExpenseDao
+    abstract fun recurringExpenseDao(): RecurringExpenseDao
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.purkt.database.data.MindExpenseDatabase
 import com.purkt.database.data.dao.IndividualExpenseDao
+import com.purkt.database.data.dao.RecurringExpenseDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,5 +30,12 @@ object DatabaseModule {
         mindExpenseDatabase: MindExpenseDatabase
     ): IndividualExpenseDao {
         return mindExpenseDatabase.individualExpenseDao()
+    }
+
+    @Provides
+    fun provideRecurringExpenseDao(
+        mindExpenseDatabase: MindExpenseDatabase
+    ): RecurringExpenseDao {
+        return mindExpenseDatabase.recurringExpenseDao()
     }
 }

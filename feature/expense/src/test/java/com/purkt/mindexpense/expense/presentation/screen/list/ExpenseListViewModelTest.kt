@@ -1,7 +1,7 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
-import com.purkt.database.domain.usecase.DeleteIndividualExpenseUseCase
-import com.purkt.database.domain.usecase.FindAllIndividualExpensesUseCase
+import com.purkt.database.domain.usecase.recurringexpense.DeleteRecurringExpenseUseCase
+import com.purkt.database.domain.usecase.recurringexpense.FindAllRecurringExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.model.domain.model.IndividualExpense
 import io.mockk.coEvery
@@ -19,8 +19,8 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpenseListViewModelTest {
-    private val findAllIndividualExpensesUseCase: FindAllIndividualExpensesUseCase = mockk()
-    private val deleteIndividualExpenseUseCase: DeleteIndividualExpenseUseCase = mockk()
+    private val findAllIndividualExpensesUseCase: FindAllRecurringExpensesUseCase = mockk()
+    private val deleteIndividualExpenseUseCase: DeleteRecurringExpenseUseCase = mockk()
     private lateinit var testDispatcher: TestDispatcher
     private lateinit var viewModel: ExpenseListViewModel
 

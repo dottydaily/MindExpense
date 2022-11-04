@@ -10,4 +10,8 @@ data class IndividualExpense(
     override var amount: Double = 0.0,
     override var currency: Currency = Currency.getInstance(Locale.getDefault()),
     var dateTime: LocalDateTime = LocalDateTime.now()
-) : Expense
+) : Expense {
+    companion object {
+        const val ID_FOR_RECURRING_EXPENSE: Int = -1
+    }
+}
