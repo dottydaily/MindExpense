@@ -5,14 +5,17 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
 import java.time.temporal.TemporalAdjusters
-import java.util.Currency
+import java.util.*
 
 data class RecurringExpense(
+    val id: Int = 0,
+    override var title: String = "",
+    override var description: String = "",
+    override var amount: Double = 0.0,
+    override var currency: Currency = Currency.getInstance(Locale.getDefault()),
     val dayOfMonth: Int,
-    val time: LocalTime,
-    val amount: Double,
-    val currency: Currency
-) {
+    val time: LocalTime
+): Expense {
     fun mapToExpense(
         targetMonth: Month,
         targetYear: Int,
@@ -24,7 +27,7 @@ data class RecurringExpense(
             }.with(TemporalAdjusters.lastDayOfMonth())
 
             return IndividualExpense(
-
+                id = 0
             )
         } catch (e: Throwable) {
             Timber.e("Error when try to mapping RecurringExpense to Expense : ${e.message}")

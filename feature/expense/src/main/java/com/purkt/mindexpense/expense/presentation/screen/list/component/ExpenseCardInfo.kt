@@ -31,7 +31,7 @@ import java.util.*
 fun ExpenseCardInfo(
     cardDetail: ExpenseInfoItem.ExpenseCardDetail,
     onEditExpense: (expenseId: Int) -> Unit = {},
-    onDeleteCard: (com.purkt.model.domain.model.IndividualExpense) -> Unit = {}
+    onDeleteCard: (IndividualExpense) -> Unit = {}
 ) {
     val expense = cardDetail.expense
     val isExpanded = cardDetail.isExpanded
