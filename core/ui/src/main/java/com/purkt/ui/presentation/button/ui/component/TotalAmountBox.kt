@@ -1,4 +1,4 @@
-package com.purkt.mindexpense.expense.presentation.screen.list.component
+package com.purkt.ui.presentation.button.ui.component
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.padding
@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color

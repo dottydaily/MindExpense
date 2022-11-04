@@ -29,11 +29,11 @@ import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActiv
 import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
 import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRangeBox
-import com.purkt.mindexpense.expense.presentation.screen.list.component.TotalAmountBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.model.domain.model.DailyExpenses
-import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.ExpenseSummary
+import com.purkt.model.domain.model.IndividualExpense
+import com.purkt.ui.presentation.button.ui.component.TotalAmountBox
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalDateTime

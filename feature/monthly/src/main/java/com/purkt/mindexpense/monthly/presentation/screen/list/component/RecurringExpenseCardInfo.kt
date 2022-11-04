@@ -19,18 +19,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.purkt.mindexpense.monthly.presentation.screen.list.state.MonthlyExpenseInfoItem
+import com.purkt.mindexpense.monthly.presentation.screen.list.state.RecurringExpenseInfoItem
 import com.purkt.model.domain.model.RecurringExpense
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalTime
 import java.util.Currency
 
 @Composable
-fun MonthlyExpenseCardInfo(
+fun RecurringExpenseCardInfo(
     modifier: Modifier = Modifier,
-    cardInfo: MonthlyExpenseInfoItem.ExpenseCardDetail,
-    onDeleteListener: () -> Unit = {},
-    onEditListener: () -> Unit = {}
+    cardInfo: RecurringExpenseInfoItem,
+    onDeleteListener: (expense: RecurringExpense) -> Unit = {},
+    onEditListener: (recurringExpenseId: Int) -> Unit = {}
 ) {
     val expense = cardInfo.recurringExpense
     var isExpanded = cardInfo.isExpanded
@@ -110,7 +110,7 @@ fun MonthlyExpenseCardInfo(
                         modifier = Modifier
                             .weight(1f),
                         onClick = {
-                            onDeleteListener.invoke()
+                            onDeleteListener.invoke(cardInfo.recurringExpense)
                         },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colors.error
@@ -129,7 +129,7 @@ fun MonthlyExpenseCardInfo(
                         modifier = Modifier
                             .weight(1f),
                         onClick = {
-                            onEditListener.invoke()
+                            onEditListener.invoke(cardInfo.recurringExpense.id)
                         },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = contentColor
@@ -153,7 +153,7 @@ fun MonthlyExpenseCardInfo(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun PreviewMonthlyExpenseCardInfo() {
+fun PreviewRecurringExpenseCardInfo() {
     val mockExpense = RecurringExpense(
         title = "Youtube Premium",
         description = "Family sharing w/ Time Bank Jun",
@@ -164,8 +164,8 @@ fun PreviewMonthlyExpenseCardInfo() {
     )
     MindExpenseTheme {
         Surface {
-            MonthlyExpenseCardInfo(
-                cardInfo = MonthlyExpenseInfoItem.ExpenseCardDetail(
+            RecurringExpenseCardInfo(
+                cardInfo = RecurringExpenseInfoItem(
                     recurringExpense = mockExpense,
                     isExpanded = false
                 )
@@ -177,7 +177,7 @@ fun PreviewMonthlyExpenseCardInfo() {
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun PreviewMonthlyExpenseCardInfoExpanded() {
+fun PreviewRecurringExpenseCardInfoExpanded() {
     val mockExpense = RecurringExpense(
         title = "Youtube Premium",
         description = "Family sharing w/ Time Bank Jun",
@@ -188,8 +188,8 @@ fun PreviewMonthlyExpenseCardInfoExpanded() {
     )
     MindExpenseTheme {
         Surface {
-            MonthlyExpenseCardInfo(
-                cardInfo = MonthlyExpenseInfoItem.ExpenseCardDetail(
+            RecurringExpenseCardInfo(
+                cardInfo = RecurringExpenseInfoItem(
                     recurringExpense = mockExpense,
                     isExpanded = true
                 )
