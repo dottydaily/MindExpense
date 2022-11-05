@@ -22,14 +22,14 @@ import java.time.LocalTime
 import java.util.*
 
 @Composable
-fun MonthlyListPage() {
-    BaseMonthlyListPage(
+fun MonthlyExpenseListPage() {
+    BaseMonthlyExpenseListPage(
         cardInfoItems = emptyList()
     )
 }
 
 @Composable
-private fun BaseMonthlyListPage(
+private fun BaseMonthlyExpenseListPage(
     isLoading: Boolean = false,
     cardInfoItems: List<RecurringExpenseInfoItem>,
     totalAmount: Double = 0.0,
@@ -112,7 +112,7 @@ private fun BaseMonthlyListPage(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun PreviewMonthlyListPage() {
+private fun PreviewMonthlyExpenseListPage() {
     val mockItems = listOf(
         RecurringExpenseInfoItem(
             recurringExpense = RecurringExpense(
@@ -152,7 +152,7 @@ private fun PreviewMonthlyListPage() {
         ?: Currency.getInstance(Locale.getDefault())
     MindExpenseTheme {
         Surface {
-            BaseMonthlyListPage(
+            BaseMonthlyExpenseListPage(
                 cardInfoItems = mockItems,
                 totalAmount = totalAmount,
                 currency = currency

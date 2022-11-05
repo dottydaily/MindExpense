@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recurring_expense_label_title">Title</string>
+    <string name="recurring_expense_label_description">Description</string>
+    <string name="recurring_expense_label_amount">Amount</string>
+    <string name="recurring_expense_label_day_of_month">Day of Month</string>
+    <string name="recurring_expense_label_time">Time</string>
+</resources>

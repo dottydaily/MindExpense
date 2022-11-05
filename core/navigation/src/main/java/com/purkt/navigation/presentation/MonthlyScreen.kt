@@ -1,4 +1,4 @@
-package com.purkt.mindexpense.monthly.domain.model.screen
+package com.purkt.navigation.presentation
 
 sealed class MonthlyScreen(val route: String) {
     object List : MonthlyScreen(route = "monthly-list")

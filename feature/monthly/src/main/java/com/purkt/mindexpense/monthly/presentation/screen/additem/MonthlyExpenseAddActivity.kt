@@ -1,4 +1,4 @@
-package com.purkt.mindexpense.expense.presentation.screen.additem
+package com.purkt.mindexpense.monthly.presentation.screen.additem
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,18 +7,18 @@ import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ExpenseAddActivity : ComponentActivity() {
+class MonthlyExpenseAddActivity : ComponentActivity() {
     companion object {
-        const val INTENT_INTEGER_EXPENSE_ID: String = "INTENT_INTEGER_EXPENSE_ID"
+        const val INTENT_INTEGER_RECURRING_EXPENSE_ID: String = "INTENT_INTEGER_RECURRING_EXPENSE_ID"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val targetExpenseId = intent.getIntExtra(INTENT_INTEGER_EXPENSE_ID, -1)
+        val targetExpenseId = intent.getIntExtra(INTENT_INTEGER_RECURRING_EXPENSE_ID, -1)
         setContent {
             MindExpenseTheme {
-                ExpenseAddPage(
+                MonthlyExpenseAddPage(
                     targetExpenseId = if (targetExpenseId != -1) targetExpenseId else null,
                     onClose = { this.finish() }
                 )

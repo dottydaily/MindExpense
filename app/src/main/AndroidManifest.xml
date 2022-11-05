@@ -28,6 +28,10 @@
             android:name=".expense.presentation.screen.additem.ExpenseAddActivity"
             android:exported="false"
             android:theme="@style/Theme.MindExpense" />
+        <activity
+            android:name=".monthly.presentation.screen.additem.MonthlyExpenseAddActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MindExpense" />
     </application>
 
 </manifest>
