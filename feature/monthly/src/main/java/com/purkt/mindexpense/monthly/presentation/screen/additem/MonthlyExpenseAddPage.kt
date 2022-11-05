@@ -46,7 +46,6 @@ fun MonthlyExpenseAddPage(
         isUpdate = targetExpenseId != null,
         addInfo = addInfo,
         addExpenseStatus = addExpenseStatus,
-        onGetTimeString = viewModel::getTimeString,
         onClickBackButton = onClose,
         onClickSaveButton = viewModel::saveExpense
     )
@@ -57,7 +56,6 @@ private fun BaseMonthlyExpenseAddPage(
     isUpdate: Boolean = false,
     addInfo: RecurringExpenseAddInfoState,
     addExpenseStatus: AddRecurringExpenseStatus,
-    onGetTimeString: (hourOfDay: Int, minute: Int) -> String? = { _, _ -> "" },
     onClickBackButton: () -> Unit = {},
     onClickSaveButton: (RecurringExpenseAddInfoState) -> Unit = {}
 ) {
@@ -179,43 +177,6 @@ private fun BaseMonthlyExpenseAddPage(
                             text = "Day of month must be the value between 1 to 31",
                             color = MaterialTheme.colors.error,
                             fontSize = 12.sp
-                        )
-                    }
-                }
-                item {
-                    val currentContext = LocalContext.current
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                focusManager.clearFocus()
-                                val currentTime = if (addInfo.time.isNotBlank()) {
-                                    addInfo.getLocalTime()
-                                } else {
-                                    LocalTime.now()
-                                }
-                                TimePickerDialog(
-                                    currentContext,
-                                    com.google.android.material.R.style.Theme_MaterialComponents_Dialog_Alert,
-                                    { _, hour, minute ->
-                                        val newTime = onGetTimeString.invoke(hour, minute)
-                                        if (newTime != null) {
-                                            addInfo.time = newTime
-                                        }
-                                    },
-                                    currentTime.hour,
-                                    currentTime.minute,
-                                    true
-                                ).show()
-                            }
-                    ) {
-                        NormalEditText(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            value = addInfo.time,
-                            onValueChange = { addInfo.time = it },
-                            label = stringResource(id = R.string.recurring_expense_label_time),
-                            isReadOnly = true
                         )
                     }
                 }

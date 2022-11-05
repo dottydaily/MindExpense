@@ -246,8 +246,7 @@ private fun PreviewMonthlyExpenseListPage() {
             description = "Shared with friends",
             amount = 209.00,
             currency = Currency.getInstance("THB"),
-            dayOfMonth = 1,
-            time = LocalTime.now()
+            dayOfMonth = 1
         ),
         RecurringExpense(
             id = 2,
@@ -255,16 +254,14 @@ private fun PreviewMonthlyExpenseListPage() {
             description = "Shared with friends",
             amount = 209.00,
             currency = Currency.getInstance("THB"),
-            dayOfMonth = 9,
-            time = LocalTime.now()
+            dayOfMonth = 9
         ),
         RecurringExpense(
             id = 3,
             title = "Discord Nitro",
             amount = 350.00,
             currency = Currency.getInstance("THB"),
-            dayOfMonth = 15,
-            time = LocalTime.now()
+            dayOfMonth = 15
         )
     )
     val totalAmount = mockItems.sumOf { it.amount }

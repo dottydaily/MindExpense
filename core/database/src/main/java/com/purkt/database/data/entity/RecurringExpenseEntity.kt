@@ -16,8 +16,7 @@ class RecurringExpenseEntity(
     @ColumnInfo(name = "description") val description: String = "",
     @ColumnInfo(name = "amount") val amount: Double = 0.0,
     @ColumnInfo(name = "currency") val currency: String = "",
-    @ColumnInfo(name = "day_of_month") val dayOfMonth: Int = 0,
-    @ColumnInfo(name = "time") val time: LocalTime = LocalTime.now()
+    @ColumnInfo(name = "day_of_month") val dayOfMonth: Int = 0
 ) {
     companion object {
         fun mapFromDomainModel(domain: RecurringExpense): RecurringExpenseEntity {
@@ -27,8 +26,7 @@ class RecurringExpenseEntity(
                 description = domain.description,
                 amount = domain.amount,
                 currency = domain.currency.currencyCode,
-                dayOfMonth = domain.dayOfMonth,
-                time = domain.time
+                dayOfMonth = domain.dayOfMonth
             )
         }
 
@@ -39,8 +37,7 @@ class RecurringExpenseEntity(
                 description = entity.description,
                 amount = entity.amount,
                 currency = Currency.getInstance(entity.currency),
-                dayOfMonth = entity.dayOfMonth,
-                time = entity.time
+                dayOfMonth = entity.dayOfMonth
             )
         }
     }

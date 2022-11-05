@@ -11,8 +11,7 @@ class RecurringExpenseForm(
     var description: String = "",
     var amount: Double = 0.0,
     currency: Currency = Currency.getInstance(Locale.getDefault()),
-    var dayOfMonth: Int = 0,
-    var time: LocalTime = LocalTime.now()
+    var dayOfMonth: Int = 0
 ) {
     var currency: Currency; private set
 
@@ -74,8 +73,7 @@ class RecurringExpenseForm(
                 description = description,
                 amount = amount,
                 currency = currency,
-                dayOfMonth = dayOfMonth,
-                time = time
+                dayOfMonth = dayOfMonth
             )
         } else {
             null

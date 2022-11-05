@@ -16,8 +16,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.DecimalFormat
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
 
@@ -44,9 +42,6 @@ class MonthlyExpenseAddViewModel @Inject constructor(
                 state.description = expense.description
                 state.amount = DecimalFormat("###0.##").format(expense.amount)
                 state.dayOfMonth = expense.dayOfMonth.toString()
-                with(expense.time) {
-                    state.time = getTimeString(hour, minute) ?: ""
-                }
             }
 
             // Set flag to update expense instead of creating the new one.
@@ -63,8 +58,7 @@ class MonthlyExpenseAddViewModel @Inject constructor(
                 description = expenseInfo.description,
                 amount = amount,
                 currency = Currency.getInstance("THB"),
-                dayOfMonth = expenseInfo.dayOfMonth.toIntOrNull() ?: 0,
-                time = expenseInfo.getLocalTime()
+                dayOfMonth = expenseInfo.dayOfMonth.toIntOrNull() ?: 0
             ).apply {
                 if (!isTitleValid()) {
                     expenseInfo.isTitleInvalid = true
@@ -98,17 +92,6 @@ class MonthlyExpenseAddViewModel @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e.message)
             _addStatusState.value = AddRecurringExpenseStatus.Failed
-        }
-    }
-
-    fun getTimeString(hourOfDay: Int, minute: Int): String? {
-        return try {
-            val time = LocalTime.of(hourOfDay, minute)
-            val formatter = DateTimeFormatter.ofPattern(RecurringExpenseAddInfoState.TIME_PATTERN)
-            formatter.format(time)
-        } catch (e: Throwable) {
-            Timber.e(e.message)
-            null
         }
     }
 }

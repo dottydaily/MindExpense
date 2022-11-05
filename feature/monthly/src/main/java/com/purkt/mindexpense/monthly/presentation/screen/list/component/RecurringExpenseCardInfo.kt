@@ -166,8 +166,7 @@ fun PreviewRecurringExpenseCardInfo() {
         description = "Family sharing w/ Time Bank Jun",
         amount = 209.00,
         currency = Currency.getInstance("THB"),
-        dayOfMonth = 14,
-        time = LocalTime.now()
+        dayOfMonth = 14
     )
     MindExpenseTheme {
         Surface {
@@ -190,8 +189,7 @@ fun PreviewRecurringExpenseCardInfoExpanded() {
         description = "Family sharing w/ Time Bank Jun",
         amount = 209.00,
         currency = Currency.getInstance("THB"),
-        dayOfMonth = 14,
-        time = LocalTime.now()
+        dayOfMonth = 14
     )
     MindExpenseTheme {
         Surface {

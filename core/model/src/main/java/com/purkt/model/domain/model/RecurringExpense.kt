@@ -13,8 +13,7 @@ data class RecurringExpense(
     override var description: String = "",
     override var amount: Double = 0.0,
     override var currency: Currency = Currency.getInstance(Locale.getDefault()),
-    val dayOfMonth: Int,
-    val time: LocalTime
+    val dayOfMonth: Int
 ) : Expense {
     fun mapToIndividualExpense(
         targetMonth: Month,
