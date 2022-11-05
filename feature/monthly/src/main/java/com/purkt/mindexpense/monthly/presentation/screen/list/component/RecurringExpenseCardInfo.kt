@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.purkt.mindexpense.monthly.presentation.screen.list.state.RecurringExpenseInfoItem
 import com.purkt.model.domain.model.RecurringExpense
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
+import java.text.DecimalFormat
 import java.time.LocalTime
 import java.util.Currency
 
@@ -33,29 +34,34 @@ fun RecurringExpenseCardInfo(
     onEditListener: (recurringExpenseId: Int) -> Unit = {}
 ) {
     val expense = cardInfo.recurringExpense
-    var isExpanded = cardInfo.isExpanded
-
+    val isExpanded = cardInfo.isExpanded
     val backgroundColor = MaterialTheme.colors.primary
     val contentColor = contentColorFor(backgroundColor = backgroundColor)
+
     val interactionSource = MutableInteractionSource()
     Card(
         modifier = Modifier
-            .animateContentSize()
+            .fillMaxWidth()
+            .wrapContentHeight()
             .clickable(
                 interactionSource = interactionSource,
                 indication = rememberRipple(),
-                onClick = { isExpanded = !isExpanded }
+                onClick = { cardInfo.isExpanded = !cardInfo.isExpanded }
             )
+            .animateContentSize()
             .then(modifier),
         backgroundColor = backgroundColor,
         shape = RoundedCornerShape(10)
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .padding(16.dp)
             ) {
+                val maxLinesTitle = if (cardInfo.isExpanded) Int.MAX_VALUE else 1
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -64,20 +70,21 @@ fun RecurringExpenseCardInfo(
                         text = expense.title,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1,
+                        maxLines = maxLinesTitle,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = expense.description,
                         fontSize = 14.sp,
-                        maxLines = 1,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 Column(
                     horizontalAlignment = Alignment.End
                 ) {
-                    val amountText = "${expense.currency.currencyCode} ${expense.amount}"
+                    val amountFormatted = DecimalFormat("#,##0.00").format(expense.amount)
+                    val amountFullText = "${expense.currency.currencyCode} $amountFormatted"
                     val dateDetailText = when (expense.dayOfMonth) {
                         1, 21 -> "${expense.dayOfMonth}st each Month"
                         2, 22 -> "${expense.dayOfMonth}nd each Month"
@@ -85,8 +92,8 @@ fun RecurringExpenseCardInfo(
                         else -> "${expense.dayOfMonth}th each Month"
                     }
                     Text(
-                        text = amountText,
-                        fontSize = 18.sp,
+                        text = amountFullText,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

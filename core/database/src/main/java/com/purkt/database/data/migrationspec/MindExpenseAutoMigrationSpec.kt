@@ -5,5 +5,5 @@ import androidx.room.migration.AutoMigrationSpec
 
 object MindExpenseAutoMigrationSpec {
     @RenameTable(fromTableName = "expense", toTableName = "individual_expense")
-    class AutoMigrationFromVersion1To2() : AutoMigrationSpec
+    class AutoMigrationFromVersion1To2 : AutoMigrationSpec
 }

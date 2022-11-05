@@ -41,7 +41,6 @@ fun ExpenseCardInfo(
     val interactionSource = MutableInteractionSource()
     Box(
         modifier = Modifier
-            .animateContentSize()
             .fillMaxWidth()
             .wrapContentHeight()
             .background(backgroundColor)
@@ -50,6 +49,7 @@ fun ExpenseCardInfo(
                 indication = rememberRipple(),
                 onClick = { cardDetail.isExpanded = !cardDetail.isExpanded }
             )
+            .animateContentSize()
     ) {
         Column(
             modifier = Modifier
@@ -86,7 +86,6 @@ fun ExpenseCardInfo(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(
-                    modifier = Modifier,
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {

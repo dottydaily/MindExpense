@@ -1,10 +1,7 @@
 package com.purkt.mindexpense.monthly.domain.model
 
 import com.purkt.common.domain.util.CurrencyUtil
-import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.RecurringExpense
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 
@@ -70,7 +67,7 @@ class RecurringExpenseForm(
      * @return Return the target [RecurringExpense] if data is valid. Otherwise, return null.
      */
     fun createExpenseOrNull(): RecurringExpense? {
-        return if (isTitleValid() && isAmountValid()) {
+        return if (isTitleValid() && isAmountValid() && isDayOfMonthValid()) {
             RecurringExpense(
                 id = id,
                 title = title,

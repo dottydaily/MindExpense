@@ -14,14 +14,15 @@ import com.purkt.database.data.migrationspec.MindExpenseAutoMigrationSpec
 
 @Database(
     entities = [IndividualExpenseEntity::class, RecurringExpenseEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(
             from = 1,
             to = 2,
             spec = MindExpenseAutoMigrationSpec.AutoMigrationFromVersion1To2::class
-        )
+        ),
+        AutoMigration(from = 2, to = 3)
     ]
 )
 @TypeConverters(LocalDateTimeTypeConverter::class, LocalTimeTypeConverter::class)
