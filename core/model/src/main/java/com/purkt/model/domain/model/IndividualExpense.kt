@@ -12,6 +12,6 @@ data class IndividualExpense(
     var dateTime: LocalDateTime = LocalDateTime.now()
 ) : Expense {
     companion object {
-        const val ID_FOR_RECURRING_EXPENSE: Int = -1
+        const val PREFIX_ID_FOR_RECURRING_EXPENSE: Int = -1
     }
 }

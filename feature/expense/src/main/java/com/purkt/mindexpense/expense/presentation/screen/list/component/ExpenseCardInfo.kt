@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.ripple.rememberRipple
@@ -34,22 +35,28 @@ fun ExpenseCardInfo(
     onDeleteCard: (IndividualExpense) -> Unit = {}
 ) {
     val expense = cardDetail.expense
+    val isRecurringExpense = expense.id < 0
+
     val isExpanded = cardDetail.isExpanded
     val backgroundColor = MaterialTheme.colors.surface
     val contentColor = MaterialTheme.colors.onSurface
 
-    val interactionSource = MutableInteractionSource()
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(backgroundColor)
+    var baseModifier = Modifier
+        .fillMaxWidth()
+        .wrapContentHeight()
+        .background(backgroundColor)
+    if (!isRecurringExpense) {
+        val interactionSource = MutableInteractionSource()
+        baseModifier = baseModifier
             .clickable(
                 interactionSource = interactionSource,
                 indication = rememberRipple(),
                 onClick = { cardDetail.isExpanded = !cardDetail.isExpanded }
             )
             .animateContentSize()
+    }
+    Box(
+        modifier = baseModifier
     ) {
         Column(
             modifier = Modifier
@@ -63,10 +70,20 @@ fun ExpenseCardInfo(
                         vertical = 16.dp
                     )
             ) {
+                if (isRecurringExpense) {
+                    Icon(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(end = 16.dp),
+                        imageVector = Icons.Filled.CalendarMonth,
+                        contentDescription = "Recurring Expense's icon"
+                    )
+                }
                 val maxLinesTitle = if (cardDetail.isExpanded) Int.MAX_VALUE else 1
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .align(Alignment.CenterVertically)
                 ) {
                     Text(
                         text = expense.title,
@@ -76,16 +93,20 @@ fun ExpenseCardInfo(
                         maxLines = maxLinesTitle,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = cardDetail.expense.description,
-                        color = contentColor,
-                        fontSize = 14.sp,
-                        maxLines = if (isExpanded) Int.MAX_VALUE else 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (expense.description.isNotBlank()) {
+                        Text(
+                            text = expense.description,
+                            color = contentColor,
+                            fontSize = 14.sp,
+                            maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -95,16 +116,20 @@ fun ExpenseCardInfo(
                     val dateTimeString = "Time : ${dateTimeFormatter.format(expense.dateTime)}"
                     Text(
                         text = "$currencyDisplayName $amountFormatted",
+                        color = contentColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1
                     )
-                    Text(
-                        text = dateTimeString,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1
-                    )
+                    if (!isRecurringExpense) {
+                        Text(
+                            text = dateTimeString,
+                            color = contentColor,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
             if (isExpanded) {
@@ -162,6 +187,48 @@ fun ExpenseCardInfo(
 private fun PreviewExpenseCardInfoCollapse() {
     val cardDetail = ExpenseInfoItem.ExpenseCardDetail(
         IndividualExpense(
+            title = "LunchLunchLunchLunchLunch",
+            description = "Eat lunch with friend at the mall near my home",
+            amount = 699.00,
+            currency = Currency.getInstance("THB"),
+            dateTime = LocalDateTime.now()
+        ),
+        isExpanded = false
+    )
+    MindExpenseTheme {
+        Surface {
+            ExpenseCardInfo(cardDetail = cardDetail)
+        }
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewExpenseCardInfoNoDescription() {
+    val cardDetail = ExpenseInfoItem.ExpenseCardDetail(
+        IndividualExpense(
+            title = "LunchLunchLunchLunchLunch",
+            amount = 699.00,
+            currency = Currency.getInstance("THB"),
+            dateTime = LocalDateTime.now()
+        ),
+        isExpanded = false
+    )
+    MindExpenseTheme {
+        Surface {
+            ExpenseCardInfo(cardDetail = cardDetail)
+        }
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewExpenseCardInfoRecurring() {
+    val cardDetail = ExpenseInfoItem.ExpenseCardDetail(
+        IndividualExpense(
+            id = -1,
             title = "LunchLunchLunchLunchLunch",
             description = "Eat lunch with friend at the mall near my home",
             amount = 699.00,

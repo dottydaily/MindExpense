@@ -7,23 +7,28 @@ import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
 import com.purkt.database.domain.usecase.individualexpense.DeleteIndividualExpenseUseCase
 import com.purkt.database.domain.usecase.individualexpense.FindAllIndividualExpensesUseCase
+import com.purkt.database.domain.usecase.recurringexpense.FindAllRecurringExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.model.domain.model.DailyExpenses
 import com.purkt.model.domain.model.ExpenseSummary
 import com.purkt.model.domain.model.IndividualExpense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.time.DateTimeException
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val findAllIndividualExpensesUseCase: FindAllIndividualExpensesUseCase,
+    private val findAllRecurringExpensesUseCase: FindAllRecurringExpensesUseCase,
     private val deleteIndividualExpenseUseCase: DeleteIndividualExpenseUseCase
 ) : ViewModel() {
     private val _loadingState = mutableStateOf(true)
@@ -156,8 +161,8 @@ class ExpenseListViewModel @Inject constructor(
         fetchAllExpenses()
     }
 
-    private fun mapToExpenseSummary(list: List<IndividualExpense>): ExpenseSummary {
-        val expensesGroupByDate = list.sortedByDescending { it.dateTime }.groupBy { it.dateTime.toLocalDate() }
+    private suspend fun mapToExpenseSummary(list: List<IndividualExpense>): ExpenseSummary = withContext(ioDispatcher) {
+        val expensesGroupByDate = list.groupBy { it.dateTime.toLocalDate() }
             .mapValues {
                 DailyExpenses(
                     it.value.toMutableList(),
@@ -168,8 +173,66 @@ class ExpenseListViewModel @Inject constructor(
         val filteredExpenses = expensesGroupByDate
             .filterKeys { it.isLocalDateInRangeOf(startDate, endDate) }.toMutableMap()
 
-        return ExpenseSummary(
-            expensesByDate = filteredExpenses,
+        // Add monthly expense to the summary
+        val recurringExpenses = findAllRecurringExpensesUseCase.invoke()
+            .catch {
+                Timber.e("Error getting all recurring expenses")
+                emit(emptyList())
+            }
+            .firstOrNull()
+
+        recurringExpenses?.forEachIndexed { index, recurringExpense ->
+            val targetConvertedExpenseId = "${IndividualExpense.PREFIX_ID_FOR_RECURRING_EXPENSE}$index".toInt()
+
+            val targetExpenseGroup = filteredExpenses.filterKeys { it.dayOfMonth == recurringExpense.dayOfMonth }
+            if (targetExpenseGroup.isNotEmpty()) {
+                val dailyExpense = targetExpenseGroup.values.firstOrNull()
+                dailyExpense?.run {
+                    val convertedExpense = recurringExpense.mapToIndividualExpense(
+                        id = targetConvertedExpenseId,
+                        targetMonth = date.month,
+                        targetYear = date.year
+                    )
+                    if (convertedExpense != null) {
+                        expenses.add(0, convertedExpense)
+                    }
+                }
+            } else {
+                // create the new expense group by date
+                val baseNewDate = if (recurringExpense.dayOfMonth < startDayEachMonth) {
+                    startDate.plusMonths(1)
+                } else {
+                    startDate
+                }
+                val newDate = try {
+                    baseNewDate.withDayOfMonth(recurringExpense.dayOfMonth)
+                } catch (e: DateTimeException) {
+                    Timber.e("Can't create new expense group by new date: ${e.message}")
+                    // create new date with last day of month instead
+                    baseNewDate.with(TemporalAdjusters.lastDayOfMonth())
+                }
+
+                val convertedExpense = recurringExpense.mapToIndividualExpense(
+                    id = targetConvertedExpenseId,
+                    targetMonth = newDate.month,
+                    targetYear = newDate.year
+                )
+                if (convertedExpense != null) {
+                    // create new daily expense
+                    val newDailyExpense = DailyExpenses(
+                        expenses = mutableListOf(convertedExpense),
+                        date = newDate
+                    )
+                    // add to expense group
+                    filteredExpenses[newDate] = newDailyExpense
+                }
+            }
+        }
+
+        val resultExpenses = filteredExpenses.toSortedMap(Comparator.reverseOrder())
+
+        return@withContext ExpenseSummary(
+            expensesByDate = resultExpenses,
             startDate = startDate,
             endDate = endDate
         )

@@ -1,6 +1,7 @@
 package com.purkt.model.domain.model
 
 import timber.log.Timber
+import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
@@ -16,17 +17,21 @@ data class RecurringExpense(
     val dayOfMonth: Int
 ) : Expense {
     fun mapToIndividualExpense(
+        id: Int,
         targetMonth: Month,
-        targetYear: Int,
-        targetTime: LocalTime
+        targetYear: Int
     ): IndividualExpense? {
         return try {
-            val targetLocalDateTime = with(targetTime) {
-                LocalDateTime.of(targetYear, targetMonth, 1, hour, minute, second)
-            }.with(TemporalAdjusters.lastDayOfMonth())
+            val targetLocalDateTime = try {
+                LocalDateTime.of(targetYear, targetMonth, dayOfMonth, 0, 0, 0)
+            } catch (e: DateTimeException) {
+                Timber.e("Can't create new date time: ${e.message}")
+                LocalDateTime.of(targetYear, targetMonth, 1, 0, 0, 0)
+                    .with(TemporalAdjusters.lastDayOfMonth())
+            }
 
             IndividualExpense(
-                id = IndividualExpense.ID_FOR_RECURRING_EXPENSE,
+                id = id,
                 title = title,
                 description = description,
                 amount = amount,
