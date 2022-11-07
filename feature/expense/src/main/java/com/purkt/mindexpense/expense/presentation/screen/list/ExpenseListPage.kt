@@ -4,6 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -25,9 +28,11 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.purkt.common.domain.util.ComposeLifecycle
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
+import com.purkt.mindexpense.expense.domain.model.ExpenseListMode
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
 import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
+import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseListModeSelector
 import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRangeBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.model.domain.model.DailyExpenses
@@ -84,11 +89,15 @@ fun ExpenseListPage(
     val monthlyExpenses by viewModel.expenseSummaryFlow.collectAsStateWithLifecycle()
     val totalAmount by viewModel.totalAmountState
     val totalCurrency by viewModel.totalCurrencyStringState
+    val listMode by viewModel.expenseListModeState
     BaseExpenseListPage(
         isLoading = isLoading,
         expenseSummary = monthlyExpenses,
         totalAmount = totalAmount,
         totalCurrency = totalCurrency,
+        listMode = listMode,
+        onSelectIndividualListMode = viewModel::setListModeToCommon,
+        onSelectMonthlyListMode = viewModel::setListModeToMonthly,
         onDeleteCard = viewModel::deleteExpense,
         onChoosePreviousMonth = viewModel::fetchPreviousMonth,
         onChooseNextMonth = viewModel::fetchNextMonth
@@ -101,6 +110,9 @@ private fun BaseExpenseListPage(
     expenseSummary: ExpenseSummary?,
     totalAmount: Double,
     totalCurrency: String,
+    listMode: ExpenseListMode,
+    onSelectIndividualListMode: () -> Unit = {},
+    onSelectMonthlyListMode: () -> Unit = {},
     onDeleteCard: (IndividualExpense) -> Unit = {},
     onChoosePreviousMonth: () -> Unit = {},
     onChooseNextMonth: () -> Unit = {}
@@ -139,79 +151,101 @@ private fun BaseExpenseListPage(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .background(
+                            color = primaryColor
                         )
-                    }
-                } else {
-                    if (expenseSummary != null && expenseSummary.expensesByDate.isNotEmpty()) {
+                        .animateContentSize()
+                ) {
+                    TotalAmountBox(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.Center)
+                            .animateContentSize(),
+                        totalAmount = totalAmount,
+                        currency = totalCurrency,
+                        backgroundColor = MaterialTheme.colors.background
+                    )
+                }
+                ExpenseListModeSelector(
+                    modifier = Modifier
+                        .padding(
+                            top = 16.dp,
+                            start = 24.dp,
+                            end = 24.dp,
+                            bottom = 16.dp
+                        )
+                        .align(Alignment.Start),
+                    mode = listMode,
+                    onSelectIndividualListMode = onSelectIndividualListMode,
+                    onSelectMonthlyListMode = onSelectMonthlyListMode
+                )
+
+                Crossfade(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    targetState = isLoading,
+                    animationSpec = tween(100)
+                ) { isLoading ->
+                    if (isLoading) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .background(
-                                    color = primaryColor
-                                )
+                                .fillMaxSize()
                         ) {
-                            TotalAmountBox(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .align(Alignment.Center),
-                                totalAmount = totalAmount,
-                                currency = totalCurrency,
-                                backgroundColor = MaterialTheme.colors.background
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center)
                             )
                         }
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        ) {
-                            expenseSummary.expensesByDate.forEach { (localDate, dailyExpenses) ->
-                                val dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
-                                item {
-                                    Row(
-                                        modifier = Modifier.padding(24.dp)
-                                    ) {
-                                        DailyDetailTitle(
-                                            modifier = Modifier
-                                                .align(Alignment.CenterVertically),
-                                            expenses = dailyExpenses.expenses,
-                                            dateDetail = dateDetail
+                    } else {
+                        if (expenseSummary != null && expenseSummary.expensesByDate.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                expenseSummary.expensesByDate.forEach { (localDate, dailyExpenses) ->
+                                    val dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
+                                    item {
+                                        Row(
+                                            modifier = Modifier.padding(24.dp)
+                                        ) {
+                                            DailyDetailTitle(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterVertically),
+                                                expenses = dailyExpenses.expenses,
+                                                dateDetail = dateDetail
+                                            )
+                                        }
+                                    }
+                                    items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
+                                        ExpenseCardInfo(
+                                            cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
+                                            onEditExpense = { startAddActivity(context, expense.id) },
+                                            onDeleteCard = { targetStateToDelete = expense }
                                         )
                                     }
                                 }
-                                items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
-                                    ExpenseCardInfo(
-                                        cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
-                                        onEditExpense = { startAddActivity(context, expense.id) },
-                                        onDeleteCard = { targetStateToDelete = expense }
-                                    )
+                                item {
+                                    Spacer(modifier = Modifier.height(120.dp))
                                 }
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(120.dp))
-                            }
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        ) {
-                            Text(
+                        } else {
+                            Box(
                                 modifier = Modifier
-                                    .align(Alignment.Center),
-                                text = "No data",
-                                color = Color.Gray,
-                                style = MaterialTheme.typography.h6
-                            )
+                                    .fillMaxSize()
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .align(Alignment.Center),
+                                    text = "No data",
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.h6
+                                )
+                            }
                         }
                     }
                 }
@@ -284,7 +318,7 @@ private fun startAddActivity(context: Context, targetExpenseId: Int? = null) {
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun PreviewExpenseScreenPage() {
+private fun PreviewExpenseScreenPageCommon() {
     val mockData = mutableMapOf<LocalDate, DailyExpenses>(
         Pair(
             first = LocalDate.of(2022, 7, 26),
@@ -351,7 +385,81 @@ private fun PreviewExpenseScreenPage() {
     val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     MindExpenseTheme {
-        BaseExpenseListPage(false, expenseSummary, totalAmount, totalCurrency)
+        BaseExpenseListPage(false, expenseSummary, totalAmount, totalCurrency, ExpenseListMode.INDIVIDUAL)
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewExpenseScreenPageMonthly() {
+    val mockData = mutableMapOf<LocalDate, DailyExpenses>(
+        Pair(
+            first = LocalDate.of(2022, 7, 26),
+            second = DailyExpenses(
+                expenses = mutableListOf(
+                    IndividualExpense(
+                        id = -11,
+                        title = "Breakfast",
+                        description = "Eat breakfast with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
+                    ),
+                    IndividualExpense(
+                        id = -12,
+                        title = "Lunch",
+                        description = "Eat lunch with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 26, 18, 0, 0)
+                    )
+                ),
+                date = LocalDate.of(2022, 7, 26)
+            )
+        ),
+        Pair(
+            first = LocalDate.of(2022, 7, 25),
+            second = DailyExpenses(
+                expenses = mutableListOf(
+                    IndividualExpense(
+                        id = -13,
+                        title = "Dinner",
+                        description = "Eat dinner with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 25, 18, 0, 0)
+                    )
+                ),
+                date = LocalDate.of(2022, 7, 25)
+            )
+        ),
+        Pair(
+            first = LocalDate.of(2022, 7, 24),
+            second = DailyExpenses(
+                expenses = mutableListOf(
+                    IndividualExpense(
+                        id = -14,
+                        title = "Dinner",
+                        description = "Eat dinner with friend at the mall",
+                        amount = 699.00,
+                        currency = Currency.getInstance("THB"),
+                        dateTime = LocalDateTime.of(2022, 7, 24, 18, 0, 0)
+                    )
+                ),
+                date = LocalDate.of(2022, 7, 24)
+            )
+        )
+    )
+    val expenseSummary = ExpenseSummary(
+        expensesByDate = mockData,
+        startDate = LocalDate.of(2022, Month.JULY, 25),
+        endDate = LocalDate.of(2022, Month.AUGUST, 24)
+    )
+    val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
+    val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
+    MindExpenseTheme {
+        BaseExpenseListPage(false, expenseSummary, totalAmount, totalCurrency, ExpenseListMode.MONTHLY)
     }
 }
 
@@ -365,6 +473,6 @@ private fun PreviewExpenseScreenPageEmpty() {
         endDate = LocalDate.of(2022, Month.AUGUST, 24)
     )
     MindExpenseTheme {
-        BaseExpenseListPage(false, expenseSummary, 0.0, "THB")
+        BaseExpenseListPage(false, expenseSummary, 0.0, "THB", ExpenseListMode.INDIVIDUAL)
     }
 }

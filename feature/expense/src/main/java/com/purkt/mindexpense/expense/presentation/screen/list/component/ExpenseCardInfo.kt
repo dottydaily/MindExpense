@@ -41,22 +41,18 @@ fun ExpenseCardInfo(
     val backgroundColor = MaterialTheme.colors.surface
     val contentColor = MaterialTheme.colors.onSurface
 
-    var baseModifier = Modifier
-        .fillMaxWidth()
-        .wrapContentHeight()
-        .background(backgroundColor)
-    if (!isRecurringExpense) {
-        val interactionSource = MutableInteractionSource()
-        baseModifier = baseModifier
+    val interactionSource = MutableInteractionSource()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .background(backgroundColor)
             .clickable(
                 interactionSource = interactionSource,
                 indication = rememberRipple(),
                 onClick = { cardDetail.isExpanded = !cardDetail.isExpanded }
             )
             .animateContentSize()
-    }
-    Box(
-        modifier = baseModifier
     ) {
         Column(
             modifier = Modifier
@@ -132,7 +128,7 @@ fun ExpenseCardInfo(
                     }
                 }
             }
-            if (isExpanded) {
+            if (isExpanded && !isRecurringExpense) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -58,7 +58,7 @@ class ExpenseListViewModelTest {
 
             // When
             viewModel.run {
-                fetchAllExpenses()
+                fetchAllIndividualExpenses()
                 advanceUntilIdle()
             }
 
@@ -89,7 +89,7 @@ class ExpenseListViewModelTest {
 
             // When
             viewModel.run {
-                fetchAllExpenses()
+                fetchAllIndividualExpenses()
                 advanceUntilIdle()
             }
 
@@ -127,7 +127,7 @@ class ExpenseListViewModelTest {
 
             // When
             viewModel.run {
-                fetchAllExpenses()
+                fetchAllIndividualExpenses()
                 advanceUntilIdle()
             }
             val currentCardInfoList = viewModel.cardInfoStateFlow.value
@@ -170,7 +170,7 @@ class ExpenseListViewModelTest {
 
             // When
             viewModel.run {
-                fetchAllExpenses()
+                fetchAllIndividualExpenses()
                 advanceUntilIdle()
             }
 
@@ -203,7 +203,7 @@ class ExpenseListViewModelTest {
 
             // When
             viewModel.run {
-                fetchAllExpenses()
+                fetchAllIndividualExpenses()
                 advanceUntilIdle()
             }
 
@@ -236,7 +236,7 @@ class ExpenseListViewModelTest {
 
             // When
             viewModel.run {
-                fetchAllExpenses()
+                fetchAllIndividualExpenses()
                 advanceUntilIdle()
             }
 
