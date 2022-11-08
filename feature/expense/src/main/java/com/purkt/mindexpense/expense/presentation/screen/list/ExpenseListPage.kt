@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -24,17 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.purkt.common.domain.util.ComposeLifecycle
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.domain.model.ExpenseListMode
+import com.purkt.mindexpense.expense.domain.model.ExpenseListResult
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
 import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseListModeSelector
 import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRangeBox
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseListPageUiState
 import com.purkt.model.domain.model.DailyExpenses
 import com.purkt.model.domain.model.ExpenseSummary
 import com.purkt.model.domain.model.IndividualExpense
@@ -45,7 +44,6 @@ import java.time.LocalDateTime
 import java.time.Month
 import java.util.*
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun ExpenseListPage(
     viewModel: ExpenseListViewModel = hiltViewModel()
@@ -56,8 +54,10 @@ fun ExpenseListPage(
         }
     )
 
-    val deleteStatus by viewModel.deleteStatusState
     val context = LocalContext.current
+
+    val uiState = remember { viewModel.uiState }
+    val deleteStatus by uiState.deleteStatusState
     LaunchedEffect(key1 = deleteStatus) {
         when (deleteStatus) {
             DeleteExpenseStatus.DataNotFoundInUi -> {
@@ -85,17 +85,9 @@ fun ExpenseListPage(
         }
         viewModel.resetDeleteStatusToIdle()
     }
-    val isLoading by viewModel.loadingState
-    val monthlyExpenses by viewModel.expenseSummaryFlow.collectAsStateWithLifecycle()
-    val totalAmount by viewModel.totalAmountState
-    val totalCurrency by viewModel.totalCurrencyStringState
-    val listMode by viewModel.expenseListModeState
+
     BaseExpenseListPage(
-        isLoading = isLoading,
-        expenseSummary = monthlyExpenses,
-        totalAmount = totalAmount,
-        totalCurrency = totalCurrency,
-        listMode = listMode,
+        uiState = uiState,
         onSelectIndividualListMode = viewModel::setListModeToCommon,
         onSelectMonthlyListMode = viewModel::setListModeToMonthly,
         onDeleteCard = viewModel::deleteExpense,
@@ -106,11 +98,7 @@ fun ExpenseListPage(
 
 @Composable
 private fun BaseExpenseListPage(
-    isLoading: Boolean = true,
-    expenseSummary: ExpenseSummary?,
-    totalAmount: Double,
-    totalCurrency: String,
-    listMode: ExpenseListMode,
+    uiState: ExpenseListPageUiState,
     onSelectIndividualListMode: () -> Unit = {},
     onSelectMonthlyListMode: () -> Unit = {},
     onDeleteCard: (IndividualExpense) -> Unit = {},
@@ -151,6 +139,9 @@ private fun BaseExpenseListPage(
                     .fillMaxSize()
                     .padding(padding)
             ) {
+                val isInitialized by remember { uiState.isInitializedState }
+                val listMode by remember { uiState.expenseListModeState }
+                val expenseListResult by remember { uiState.expenseListResultState }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -160,6 +151,8 @@ private fun BaseExpenseListPage(
                         )
                         .animateContentSize()
                 ) {
+                    val totalAmount by remember { uiState.totalAmountState }
+                    val totalCurrency by remember { uiState.totalCurrencyState }
                     TotalAmountBox(
                         modifier = Modifier
                             .padding(16.dp)
@@ -183,31 +176,45 @@ private fun BaseExpenseListPage(
                     onSelectIndividualListMode = onSelectIndividualListMode,
                     onSelectMonthlyListMode = onSelectMonthlyListMode
                 )
-
                 Crossfade(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    targetState = isLoading,
-                    animationSpec = tween(100)
-                ) { isLoading ->
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center)
-                            )
+                    targetState = expenseListResult
+                ) { result ->
+                    when (result) {
+                        ExpenseListResult.EmptyResult -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .align(Alignment.Center),
+                                    text = "No data",
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.h6
+                                )
+                            }
                         }
-                    } else {
-                        if (expenseSummary != null && expenseSummary.expensesByDate.isNotEmpty()) {
+                        ExpenseListResult.Loading -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        }
+                        is ExpenseListResult.ResultWithData -> {
+                            val summary = result.summary
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f)
                             ) {
-                                expenseSummary.expensesByDate.forEach { (localDate, dailyExpenses) ->
+                                summary.expensesByDate.forEach { (localDate, dailyExpenses) ->
                                     val dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
                                     item {
                                         Row(
@@ -233,38 +240,35 @@ private fun BaseExpenseListPage(
                                     Spacer(modifier = Modifier.height(120.dp))
                                 }
                             }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            ) {
-                                Text(
-                                    modifier = Modifier
-                                        .align(Alignment.Center),
-                                    text = "No data",
-                                    color = Color.Gray,
-                                    style = MaterialTheme.typography.h6
-                                )
-                            }
                         }
                     }
                 }
 
-                if (expenseSummary != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(primaryColor)
-                    ) {
-                        MonthRangeBox(
+                Crossfade(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    targetState = isInitialized
+                ) { isDateSet ->
+                    if (isDateSet) {
+                        Box(
                             modifier = Modifier
-                                .align(Alignment.Center),
-                            startDate = expenseSummary.startDate,
-                            endDate = expenseSummary.endDate,
-                            contentColor = MaterialTheme.colors.onPrimary,
-                            onClickLeftArrow = onChoosePreviousMonth,
-                            onClickRightArrow = onChooseNextMonth
-                        )
+                                .fillMaxWidth()
+                                .background(primaryColor)
+                        ) {
+                            if (isInitialized) {
+                                val startDate by remember { uiState.startDateState }
+                                val endDate by remember { uiState.endDateState }
+                                MonthRangeBox(
+                                    modifier = Modifier
+                                        .align(Alignment.Center),
+                                    startDate = startDate,
+                                    endDate = endDate,
+                                    contentColor = MaterialTheme.colors.onPrimary,
+                                    onClickLeftArrow = onChoosePreviousMonth,
+                                    onClickRightArrow = onChooseNextMonth
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -384,8 +388,14 @@ private fun PreviewExpenseScreenPageCommon() {
     )
     val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
+    val uiState = ExpenseListPageUiState().apply {
+        expenseListResultState.value = ExpenseListResult.ResultWithData(expenseSummary)
+        totalAmountState.value = totalAmount
+        totalCurrencyState.value = totalCurrency
+        expenseListModeState.value = ExpenseListMode.INDIVIDUAL
+    }
     MindExpenseTheme {
-        BaseExpenseListPage(false, expenseSummary, totalAmount, totalCurrency, ExpenseListMode.INDIVIDUAL)
+        BaseExpenseListPage(uiState)
     }
 }
 
@@ -458,8 +468,14 @@ private fun PreviewExpenseScreenPageMonthly() {
     )
     val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
+    val uiState = ExpenseListPageUiState().apply {
+        expenseListResultState.value = ExpenseListResult.ResultWithData(expenseSummary)
+        totalAmountState.value = totalAmount
+        totalCurrencyState.value = totalCurrency
+        expenseListModeState.value = ExpenseListMode.MONTHLY
+    }
     MindExpenseTheme {
-        BaseExpenseListPage(false, expenseSummary, totalAmount, totalCurrency, ExpenseListMode.MONTHLY)
+        BaseExpenseListPage(uiState)
     }
 }
 
@@ -472,7 +488,13 @@ private fun PreviewExpenseScreenPageEmpty() {
         startDate = LocalDate.of(2022, Month.JULY, 25),
         endDate = LocalDate.of(2022, Month.AUGUST, 24)
     )
+    val uiState = ExpenseListPageUiState().apply {
+        expenseListResultState.value = ExpenseListResult.ResultWithData(expenseSummary)
+        totalAmountState.value = 0.0
+        totalCurrencyState.value = "THB"
+        expenseListModeState.value = ExpenseListMode.INDIVIDUAL
+    }
     MindExpenseTheme {
-        BaseExpenseListPage(false, expenseSummary, 0.0, "THB", ExpenseListMode.INDIVIDUAL)
+        BaseExpenseListPage(uiState)
     }
 }

@@ -1,7 +1,5 @@
 package com.purkt.mindexpense.expense.presentation.screen.list
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
@@ -10,13 +8,14 @@ import com.purkt.database.domain.usecase.individualexpense.FindAllIndividualExpe
 import com.purkt.database.domain.usecase.recurringexpense.FindAllRecurringExpensesUseCase
 import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.domain.model.ExpenseListMode
+import com.purkt.mindexpense.expense.domain.model.ExpenseListResult
+import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseListPageUiState
 import com.purkt.model.domain.model.DailyExpenses
 import com.purkt.model.domain.model.ExpenseSummary
 import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.RecurringExpense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,69 +32,43 @@ class ExpenseListViewModel @Inject constructor(
     private val findAllRecurringExpensesUseCase: FindAllRecurringExpensesUseCase,
     private val deleteIndividualExpenseUseCase: DeleteIndividualExpenseUseCase
 ) : ViewModel() {
-    private val _loadingState = mutableStateOf(true)
-    private val _expenseListModeState = mutableStateOf(ExpenseListMode.INDIVIDUAL)
-    private val _expenseSummaryFlow = MutableStateFlow<ExpenseSummary?>(null)
-    private val _recurringExpenseSummaryFlow = MutableStateFlow<ExpenseSummary?>(null)
-    private val _deleteStatusState = mutableStateOf<DeleteExpenseStatus>(DeleteExpenseStatus.Idle)
-    private val _totalAmountState = mutableStateOf(0.0)
-    private val _totalCurrencyState = mutableStateOf("")
+    private var isLoading = true
 
     // Date related
     private var startDayEachMonth = 25
-    private var startDate: LocalDate = LocalDate.now().run {
-        var targetDate = this
-        if (dayOfMonth < startDayEachMonth) {
-            targetDate = targetDate.minusMonths(1)
+
+    val uiState = ExpenseListPageUiState()
+
+    init {
+        uiState.apply {
+            val startDate = LocalDate.now().run {
+                var targetDate = this
+                if (dayOfMonth < startDayEachMonth) {
+                    targetDate = targetDate.minusMonths(1)
+                }
+                targetDate = targetDate.withDayOfMonth(startDayEachMonth)
+                targetDate
+            }
+            val endDate = startDate.plusMonths(1).minusDays(1)
+            startDateState.value = startDate
+            endDateState.value = endDate
+            isInitializedState.value = true
         }
-        targetDate = targetDate.withDayOfMonth(startDayEachMonth)
-        targetDate
     }
-    private var endDate: LocalDate = startDate.plusMonths(1).minusDays(1)
-
-    /**
-     * A State of loading status of this page.
-     */
-    val loadingState: State<Boolean> = _loadingState
-
-    /**
-     * A State of target expense data to show on this page.
-     */
-    val expenseListModeState: State<ExpenseListMode> = _expenseListModeState
-
-    /**
-     * A State of the [ExpenseSummary] that contains [IndividualExpense] or [RecurringExpense] detail to show in UI.
-     */
-    val expenseSummaryFlow: StateFlow<ExpenseSummary?> = _expenseSummaryFlow
-
-    /**
-     * A State of delete status.
-     */
-    val deleteStatusState: State<DeleteExpenseStatus> = _deleteStatusState
-
-    /**
-     * A State of the total amount of all expenses.
-     */
-    val totalAmountState: State<Double> = _totalAmountState
-
-    /**
-     * A State of the total amount's currency string.
-     */
-    val totalCurrencyStringState: State<String> = _totalCurrencyState
 
     /**
      * Start fetching all expense data from database.
      *
-     * The target expense data will depend on [expenseListModeState].
+     * The target expense data will depend on [ExpenseListPageUiState.expenseListModeState].
      * - If it is [ExpenseListMode.INDIVIDUAL], then load [IndividualExpense].
      * - If it is [ExpenseListMode.MONTHLY], then load [RecurringExpense].
      *
-     * This method will observe database and emit the updated data to [expenseSummaryFlow].
+     * This method will observe database and emit the updated data
+     * to [ExpenseListPageUiState.expenseListResultState].
      */
     fun fetchAllExpenses() = viewModelScope.launch(ioDispatcher) {
-        _loadingState.value = true
-        delay(150L)
-        val targetFlow = when (_expenseListModeState.value) {
+        isLoading = true
+        val targetFlow = when (uiState.expenseListModeState.value) {
             ExpenseListMode.INDIVIDUAL -> {
                 findAllIndividualExpensesUseCase.invoke()
                     .transform { individualExpenses ->
@@ -113,7 +86,7 @@ class ExpenseListViewModel @Inject constructor(
         }
         targetFlow.collectExpenseSummaryFromTargetFlow(
             toDoAfterCollected = {
-                if (_loadingState.value) _loadingState.value = false
+                isLoading = false
             }
         )
     }
@@ -121,80 +94,95 @@ class ExpenseListViewModel @Inject constructor(
     /**
      * Delete the target expense from database and UI.
      *
-     * This method will trigger update on [expenseSummaryFlow] and [deleteStatusState]
+     * This method will trigger update on [ExpenseListPageUiState.expenseListResultState]
+     * and [ExpenseListPageUiState.deleteStatusState]
      *
      * @param expense The target [IndividualExpense] which it will be deleted.
      */
     fun deleteExpense(expense: IndividualExpense) = viewModelScope.launch(ioDispatcher) {
-        val expensesByDate = _expenseSummaryFlow.value?.expensesByDate
+        val expenseListResult = uiState.expenseListResultState.value
+        if (expenseListResult is ExpenseListResult.ResultWithData) {
+            val summary = expenseListResult.summary
+            val expensesByDate = summary.expensesByDate
 
-        val targetDate = expense.dateTime.toLocalDate()
-        val targetDailyExpenses = expensesByDate?.get(targetDate)
-        val targetExpense = targetDailyExpenses?.expenses
-            ?.find { it.id == expense.id }
-        if (targetExpense == null) {
-            _deleteStatusState.value = DeleteExpenseStatus.DataNotFoundInUi
-        } else {
-            val isDeleted = deleteIndividualExpenseUseCase.invoke(targetExpense)
-            if (isDeleted) {
-                // Remove expense from the target daily expenses
-                targetDailyExpenses.expenses.removeIf { it.id == expense.id }
-
-                // Check and remove if the current date has no data
-                if (targetDailyExpenses.expenses.isEmpty()) {
-                    expensesByDate.remove(targetDate)
-                }
-
-                // Update each information )
-                val newTotalAmount = _expenseSummaryFlow.value?.expensesByDate?.values
-                    ?.sumOf { dailyExpense -> dailyExpense.getTotalAmount() }
-                    ?: 0.0
-                _totalAmountState.value = newTotalAmount
-                _totalCurrencyState.value = _expenseSummaryFlow.value?.expensesByDate?.values?.firstOrNull()
-                    ?.expenses?.firstOrNull()
-                    ?.currency?.currencyCode
-                    ?: ""
-                _expenseSummaryFlow.value = _expenseSummaryFlow.value?.copy()
-                _deleteStatusState.value = DeleteExpenseStatus.Success
+            val targetDate = expense.dateTime.toLocalDate()
+            val targetDailyExpenses = expensesByDate[targetDate]
+            val targetExpense = targetDailyExpenses?.expenses
+                ?.find { it.id == expense.id }
+            if (targetExpense == null) {
+                uiState.deleteStatusState.value = DeleteExpenseStatus.DataNotFoundInUi
             } else {
-                _deleteStatusState.value = DeleteExpenseStatus.Failed
+                val isDeleted = deleteIndividualExpenseUseCase.invoke(targetExpense)
+                if (isDeleted) {
+                    // Remove expense from the target daily expenses
+                    targetDailyExpenses.expenses.removeIf { it.id == expense.id }
+
+                    // Check and remove if the current date has no data
+                    if (targetDailyExpenses.expenses.isEmpty()) {
+                        expensesByDate.remove(targetDate)
+                    }
+
+                    // Update each information
+                    val newTotalAmount = expensesByDate.values
+                        .sumOf { dailyExpense -> dailyExpense.getTotalAmount() }
+
+                    uiState.apply {
+                        totalAmountState.value = newTotalAmount
+                        totalCurrencyState.value = expensesByDate.values.firstOrNull()
+                            ?.expenses?.firstOrNull()
+                            ?.currency?.currencyCode
+                            ?: ""
+                        expenseListResultState.value = ExpenseListResult.ResultWithData(summary)
+                        deleteStatusState.value = DeleteExpenseStatus.Success
+                    }
+                } else {
+                    uiState.deleteStatusState.value = DeleteExpenseStatus.Failed
+                }
             }
         }
     }
 
     /**
-     * Reset [deleteStatusState] to be [DeleteExpenseStatus.Idle]
+     * Reset [ExpenseListPageUiState.deleteStatusState] to be [DeleteExpenseStatus.Idle]
      */
     fun resetDeleteStatusToIdle() {
-        _deleteStatusState.value = DeleteExpenseStatus.Idle
+        uiState.deleteStatusState.value = DeleteExpenseStatus.Idle
     }
 
     fun setListModeToCommon() {
-        if (!_loadingState.value && _expenseListModeState.value != ExpenseListMode.INDIVIDUAL) {
-            _expenseListModeState.value = ExpenseListMode.INDIVIDUAL
+        with(uiState) {
+            if (!isLoading && expenseListModeState.value != ExpenseListMode.INDIVIDUAL) {
+                expenseListModeState.value = ExpenseListMode.INDIVIDUAL
+            }
+            fetchAllExpenses()
         }
-        fetchAllExpenses()
     }
 
     fun setListModeToMonthly() {
-        if (!_loadingState.value && _expenseListModeState.value != ExpenseListMode.MONTHLY) {
-            _expenseListModeState.value = ExpenseListMode.MONTHLY
+        with(uiState) {
+            if (!isLoading && expenseListModeState.value != ExpenseListMode.MONTHLY) {
+                expenseListModeState.value = ExpenseListMode.MONTHLY
+            }
+            fetchAllExpenses()
         }
-        fetchAllExpenses()
     }
 
     fun fetchPreviousMonth() {
-        if (!_loadingState.value) {
-            startDate = startDate.minusMonths(1)
-            endDate = endDate.minusMonths(1)
+        if (!isLoading) {
+            uiState.apply {
+                startDateState.value = startDateState.value.minusMonths(1)
+                endDateState.value = endDateState.value.minusMonths(1)
+            }
             fetchAllExpenses()
         }
     }
 
     fun fetchNextMonth() {
-        if (!_loadingState.value) {
-            startDate = startDate.plusMonths(1)
-            endDate = endDate.plusMonths(1)
+        if (!isLoading) {
+            uiState.apply {
+                startDateState.value = startDateState.value.plusMonths(1)
+                endDateState.value = endDateState.value.plusMonths(1)
+            }
             fetchAllExpenses()
         }
     }
@@ -210,6 +198,8 @@ class ExpenseListViewModel @Inject constructor(
                     )
                 }
 
+            val startDate = uiState.startDateState.value
+            val endDate = uiState.endDateState.value
             val filteredExpenses = expensesGroupByDate
                 .filterKeys { it.isLocalDateInRangeOf(startDate, endDate) }
                 .toMutableMap()
@@ -249,9 +239,9 @@ class ExpenseListViewModel @Inject constructor(
                 } else {
                     // create the new expense group by date
                     val baseNewDate = if (recurringExpense.dayOfMonth < startDayEachMonth) {
-                        startDate.plusMonths(1)
+                        uiState.startDateState.value.plusMonths(1)
                     } else {
-                        startDate
+                        uiState.startDateState.value
                     }
                     val newDate = try {
                         baseNewDate.withDayOfMonth(recurringExpense.dayOfMonth)
@@ -280,8 +270,8 @@ class ExpenseListViewModel @Inject constructor(
 
             return@withContext ExpenseSummary(
                 expensesByDate = expensesGroupByDate,
-                startDate = startDate,
-                endDate = endDate
+                startDate = uiState.startDateState.value,
+                endDate = uiState.endDateState.value
             )
         }
     }
@@ -296,12 +286,20 @@ class ExpenseListViewModel @Inject constructor(
     }
 
     private fun setUiDataFromExpenseSummary(summary: ExpenseSummary) {
-        _totalAmountState.value = summary.expensesByDate.values
-            .sumOf { dailyExpense -> dailyExpense.getTotalAmount() }
-        _totalCurrencyState.value = summary.expensesByDate.values.firstOrNull()
-            ?.expenses?.firstOrNull()
-            ?.currency?.currencyCode
-            ?: ""
-        _expenseSummaryFlow.value = summary
+        uiState.apply {
+            totalAmountState.value = summary.expensesByDate.values
+                .sumOf { dailyExpense -> dailyExpense.getTotalAmount() }
+            totalCurrencyState.value = summary.expensesByDate.values.firstOrNull()
+                ?.expenses?.firstOrNull()
+                ?.currency?.currencyCode
+                ?: ""
+            val isSummaryNotEmpty = summary.expensesByDate.isNotEmpty()
+            val hasAtLeastOneExpense = summary.expensesByDate.values.any { it.expenses.isNotEmpty() }
+            expenseListResultState.value = if (isSummaryNotEmpty && hasAtLeastOneExpense) {
+                ExpenseListResult.ResultWithData(summary)
+            } else {
+                ExpenseListResult.EmptyResult
+            }
+        }
     }
 }
