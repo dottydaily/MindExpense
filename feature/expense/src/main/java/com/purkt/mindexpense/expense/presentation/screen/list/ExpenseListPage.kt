@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -116,7 +117,7 @@ private fun BaseExpenseListPage(
                 FloatingActionButton(
                     modifier = Modifier
                         .padding(
-                            bottom = 60.dp
+                            bottom = 72.dp
                         ),
                     interactionSource = fabInteractionSource,
                     elevation = FloatingActionButtonDefaults.elevation(),
@@ -130,99 +131,94 @@ private fun BaseExpenseListPage(
                 }
             }
         ) { padding ->
-            Column(
+            val isInitialized by remember { uiState.isInitializedState }
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                val isInitialized by remember { uiState.isInitializedState }
-                val listMode by remember { uiState.expenseListModeState }
-                val expenseListResult by remember { uiState.expenseListResultState }
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .background(
-                            color = primaryColor
-                        )
-                        .animateContentSize()
+                        .fillMaxSize()
+                        .padding(padding)
                 ) {
+                    val listMode by remember { uiState.expenseListModeState }
+                    val expenseListResult by remember { uiState.expenseListResultState }
                     val totalAmount by remember { uiState.totalAmountState }
                     val totalCurrency by remember { uiState.totalCurrencyState }
                     TotalAmountBox(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.Center)
+                            .padding(top = 16.dp)
+                            .align(Alignment.Start)
                             .animateContentSize(),
                         totalAmount = totalAmount,
-                        currency = totalCurrency,
-                        backgroundColor = MaterialTheme.colors.background
+                        currency = totalCurrency
                     )
-                }
-                ExpenseListModeSelector(
-                    modifier = Modifier
-                        .padding(
-                            top = 16.dp,
-                            start = 24.dp,
-                            end = 24.dp,
-                            bottom = 16.dp
-                        )
-                        .align(Alignment.Start),
-                    mode = listMode,
-                    onSelectIndividualListMode = onSelectIndividualListMode,
-                    onSelectMonthlyListMode = onSelectMonthlyListMode
-                )
-                Crossfade(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    targetState = expenseListResult
-                ) { result ->
-                    when (result) {
-                        ExpenseListResult.EMPTY -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            ) {
-                                Text(
+                    ExpenseListModeSelector(
+                        modifier = Modifier
+                            .padding(
+                                top = 16.dp,
+                                start = 24.dp,
+                                end = 24.dp,
+                                bottom = 16.dp
+                            )
+                            .align(Alignment.Start),
+                        mode = listMode,
+                        onSelectIndividualListMode = onSelectIndividualListMode,
+                        onSelectMonthlyListMode = onSelectMonthlyListMode
+                    )
+                    Crossfade(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        targetState = expenseListResult
+                    ) { result ->
+                        when (result) {
+                            ExpenseListResult.EMPTY -> {
+                                Box(
                                     modifier = Modifier
-                                        .align(Alignment.Center),
-                                    text = "No data",
-                                    color = Color.Gray,
-                                    style = MaterialTheme.typography.h6
-                                )
-                            }
-                        }
-                        ExpenseListResult.LOADING -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            }
-                        }
-                        ExpenseListResult.FOUND -> {
-                            val dailyExpensesList = remember { uiState.dailyExpensesStateList }
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            ) {
-                                items(items = dailyExpensesList, key = { it.date.toEpochDay() }) {
-                                    DailyExpensesDetail(
-                                        dailyExpenses = it,
-                                        onEditExpense = { expenseId ->
-                                            startAddActivity(context, expenseId)
-                                        },
-                                        onDeleteExpense = { targetExpense ->
-                                            targetStateToDelete = targetExpense
-                                        }
+                                        .fillMaxSize()
+                                ) {
+                                    Text(
+                                        modifier = Modifier
+                                            .align(Alignment.Center),
+                                        text = "No data",
+                                        color = Color.Gray,
+                                        style = MaterialTheme.typography.h6
                                     )
                                 }
-                                item {
-                                    Spacer(modifier = Modifier.height(120.dp))
+                            }
+                            ExpenseListResult.LOADING -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            }
+                            ExpenseListResult.FOUND -> {
+                                val dailyExpensesList = remember { uiState.dailyExpensesStateList }
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                ) {
+                                    items(items = dailyExpensesList, key = { it.date.toEpochDay() }) {
+                                        DailyExpensesDetail(
+                                            dailyExpenses = it,
+                                            onEditExpense = { expenseId ->
+                                                startAddActivity(context, expenseId)
+                                            },
+                                            onDeleteExpense = { targetExpense ->
+                                                targetStateToDelete = targetExpense
+                                            }
+                                        )
+                                    }
+                                    item {
+                                        Spacer(modifier = Modifier.height(120.dp))
+                                    }
                                 }
                             }
                         }
@@ -231,21 +227,20 @@ private fun BaseExpenseListPage(
 
                 Crossfade(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.BottomCenter),
                     targetState = isInitialized
                 ) { isDateSet ->
                     if (isDateSet) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(primaryColor)
+                        Card(
+                            backgroundColor = MaterialTheme.colors.primary,
+                            shape = RoundedCornerShape(50),
+                            elevation = 2.dp
                         ) {
                             if (isInitialized) {
                                 val startDate by remember { uiState.startDateState }
                                 val endDate by remember { uiState.endDateState }
                                 MonthRangeBox(
-                                    modifier = Modifier
-                                        .align(Alignment.Center),
                                     startDate = startDate,
                                     endDate = endDate,
                                     contentColor = MaterialTheme.colors.onPrimary,
@@ -374,6 +369,7 @@ private fun PreviewExpenseScreenPageCommon() {
         totalAmountState.value = totalAmount
         totalCurrencyState.value = totalCurrency
         expenseListModeState.value = ExpenseListMode.INDIVIDUAL
+        isInitializedState.value = true
     }
     MindExpenseTheme {
         BaseExpenseListPage(uiState)
@@ -450,6 +446,7 @@ private fun PreviewExpenseScreenPageMonthly() {
         totalAmountState.value = totalAmount
         totalCurrencyState.value = totalCurrency
         expenseListModeState.value = ExpenseListMode.MONTHLY
+        isInitializedState.value = true
     }
     MindExpenseTheme {
         BaseExpenseListPage(uiState)
@@ -465,6 +462,7 @@ private fun PreviewExpenseScreenPageEmpty() {
         totalAmountState.value = 0.0
         totalCurrencyState.value = "THB"
         expenseListModeState.value = ExpenseListMode.INDIVIDUAL
+        isInitializedState.value = true
     }
     MindExpenseTheme {
         BaseExpenseListPage(uiState)

@@ -35,7 +35,6 @@ fun MonthRangeBox(
 
     Row(
         modifier = Modifier
-            .padding(8.dp)
             .then(modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)

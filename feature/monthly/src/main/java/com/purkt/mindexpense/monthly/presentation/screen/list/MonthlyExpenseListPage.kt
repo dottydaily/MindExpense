@@ -150,19 +150,13 @@ private fun BaseMonthlyExpenseListPage(
                             )
                         }
                     } else {
-                        Box(
+                        TotalAmountBox(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .background(color = MaterialTheme.colors.primary)
-                        ) {
-                            TotalAmountBox(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .align(Alignment.Center),
-                                totalAmount = totalAmount,
-                                currency = currencyString
-                            )
-                        }
+                                .padding(top = 16.dp)
+                                .align(Alignment.Start),
+                            totalAmount = totalAmount,
+                            currency = currencyString
+                        )
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -171,6 +165,9 @@ private fun BaseMonthlyExpenseListPage(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             val cardInfoItems = expenses.map { RecurringExpenseInfoItem(it) }
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                             items(
                                 items = cardInfoItems,
                                 key = { it.recurringExpense.id }

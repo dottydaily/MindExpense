@@ -22,14 +22,17 @@ fun TotalAmountBox(
     modifier: Modifier = Modifier,
     totalAmount: Double,
     currency: String,
-    backgroundColor: Color = MaterialTheme.colors.background,
-    contentColor: Color = MaterialTheme.colors.onBackground
+    backgroundColor: Color = MaterialTheme.colors.secondary,
+    contentColor: Color = MaterialTheme.colors.onSecondary
 ) {
     val totalAmountString = DecimalFormat("#,##0.##").format(totalAmount)
     Card(
         modifier = Modifier
             .then(modifier),
-        shape = RoundedCornerShape(percent = 50),
+        shape = RoundedCornerShape(
+            topEndPercent = 50,
+            bottomEndPercent = 50
+        ),
         backgroundColor = backgroundColor,
         contentColor = contentColor
     ) {
