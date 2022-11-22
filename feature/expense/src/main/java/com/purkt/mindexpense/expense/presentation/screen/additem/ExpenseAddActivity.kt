@@ -15,6 +15,17 @@ class ExpenseAddActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        window.apply {
+            statusBarColor = resources.getColor(
+                com.purkt.ui.R.color.status_bar_alt_color,
+                this@ExpenseAddActivity.theme
+            )
+            navigationBarColor = resources.getColor(
+                com.purkt.ui.R.color.status_bar_alt_color,
+                this@ExpenseAddActivity.theme
+            )
+        }
+
         val targetExpenseId = intent.getIntExtra(INTENT_INTEGER_EXPENSE_ID, -1)
         setContent {
             MindExpenseTheme {

@@ -51,7 +51,7 @@ class MonthlyExpenseAddViewModel @Inject constructor(
 
     fun saveExpense(expenseInfo: RecurringExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
         try {
-            val amount = expenseInfo.amount.toDouble()
+            val amount = expenseInfo.amount.toDoubleOrNull() ?: 0.0
             val form = RecurringExpenseForm(
                 id = expenseInfo.recurringExpenseId,
                 title = expenseInfo.title,

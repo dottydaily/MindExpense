@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
@@ -26,10 +25,10 @@ fun NormalEditText(
     isError: Boolean = false
 ) {
     val baseColors = if (isError) {
-        TextFieldDefaults.outlinedTextFieldColors(
+        TextFieldDefaults.textFieldColors(
             textColor = MaterialTheme.colors.error
         )
-    } else TextFieldDefaults.outlinedTextFieldColors(
+    } else TextFieldDefaults.textFieldColors(
         focusedLabelColor = MaterialTheme.colors.secondary
     )
     val interactionSource = remember { MutableInteractionSource() }
@@ -38,12 +37,12 @@ fun NormalEditText(
         error = isError,
         interactionSource = interactionSource
     ).value
-    val readOnlyColors = TextFieldDefaults.outlinedTextFieldColors(
+    val readOnlyColors = TextFieldDefaults.textFieldColors(
         disabledTextColor = baseColors.textColor(enabled = true).value,
         disabledLabelColor = baseLabelColor,
         unfocusedLabelColor = baseLabelColor
     )
-    OutlinedTextField(
+    TextField(
         modifier = Modifier
             .then(modifier),
         shape = RoundedCornerShape(percent = 10),

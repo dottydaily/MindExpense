@@ -3,12 +3,14 @@ package com.purkt.mindexpense.expense.presentation.screen.additem
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,26 +91,19 @@ private fun BaseExpenseAddPage(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
+                .padding(horizontal = 24.dp)
         ) {
-            Box(
+            Text(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary)
-                    .padding(24.dp)
-            ) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart),
-                    text = if (isUpdate) "Edit expense" else "Add new expense",
-                    color = MaterialTheme.colors.onPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                    .paddingFromBaseline(top = 96.dp),
+                text = if (isUpdate) "Edit expense" else "Add new expense",
+                color = MaterialTheme.colors.onBackground,
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold
+            )
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -243,38 +238,43 @@ private fun BaseExpenseAddPage(
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
-            Box(
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colors.primary)
+                    .padding(vertical = 24.dp)
+                    .align(Alignment.End),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                        .align(Alignment.BottomCenter),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                TextButton(
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    onClick = { onClickBackButton.invoke() },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colors.onBackground
+                    )
                 ) {
-                    Button(
+                    Text(
+                        text = stringResource(id = com.purkt.ui.R.string.back),
+                        fontSize = 16.sp
+                    )
+                }
+                Button(
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    shape = RoundedCornerShape(50),
+                    onClick = { onClickSaveButton.invoke(addInfo) },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = MaterialTheme.colors.secondary,
+                        contentColor = MaterialTheme.colors.onSecondary
+                    )
+                ) {
+                    Icon(
                         modifier = Modifier
-                            .weight(1f),
-                        onClick = { onClickBackButton.invoke() },
-                        colors = ButtonDefaults.textButtonColors(
-                            backgroundColor = MaterialTheme.colors.onPrimary
-                        )
-                    ) {
-                        Text(text = stringResource(id = com.purkt.ui.R.string.back))
-                    }
-                    Button(
-                        modifier = Modifier
-                            .weight(1f),
-                        onClick = { onClickSaveButton.invoke(addInfo) },
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = MaterialTheme.colors.secondary
-                        )
-                    ) {
-                        Text(text = stringResource(id = com.purkt.ui.R.string.save))
-                    }
+                            .padding(end = 8.dp),
+                        imageVector = Icons.Default.Save,
+                        contentDescription = "Save icon for save button"
+                    )
+                    Text(
+                        text = stringResource(id = com.purkt.ui.R.string.save),
+                        fontSize = 16.sp
+                    )
                 }
             }
         }

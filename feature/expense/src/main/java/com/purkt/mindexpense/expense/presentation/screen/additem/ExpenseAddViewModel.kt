@@ -58,7 +58,7 @@ class ExpenseAddViewModel @Inject constructor(
 
     fun saveExpense(expenseInfo: ExpenseAddInfoState) = viewModelScope.launch(ioDispatcher) {
         try {
-            val amount = expenseInfo.amount.toDouble()
+            val amount = expenseInfo.amount.toDoubleOrNull() ?: 0.0
             val form = ExpenseForm(
                 id = expenseInfo.expenseId,
                 title = expenseInfo.title,

@@ -22,7 +22,7 @@ fun NumberEditText(
     placeholder: String = "",
     isError: Boolean = false
 ) {
-    OutlinedTextField(
+    TextField(
         modifier = Modifier
             .then(modifier),
         shape = RoundedCornerShape(percent = 10),
@@ -42,10 +42,10 @@ fun NumberEditText(
         ),
         isError = isError,
         colors = if (isError) {
-            TextFieldDefaults.outlinedTextFieldColors(
+            TextFieldDefaults.textFieldColors(
                 textColor = MaterialTheme.colors.error,
             )
-        } else TextFieldDefaults.outlinedTextFieldColors(
+        } else TextFieldDefaults.textFieldColors(
             focusedLabelColor = MaterialTheme.colors.secondary,
         )
     )
