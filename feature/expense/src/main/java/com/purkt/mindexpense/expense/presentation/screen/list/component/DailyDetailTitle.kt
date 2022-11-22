@@ -18,14 +18,16 @@ import androidx.compose.ui.unit.sp
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
+import timber.log.Timber
 import java.text.DecimalFormat
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun DailyDetailTitle(
     modifier: Modifier = Modifier,
     expenses: Collection<IndividualExpense>,
-    dateDetail: ExpenseInfoItem.ExpenseDateDetail
+    date: LocalDate
 ) {
     val totalAmount = expenses.sumOf { it.amount }
     val totalAmountString = DecimalFormat("#,##0.00").format(totalAmount)
@@ -44,8 +46,14 @@ fun DailyDetailTitle(
                     vertical = 8.dp
                 )
         ) {
+            val dateString: String = try {
+                DateTimeFormatter.ofPattern("eee, MMM d, yyyy").format(date)
+            } catch (e: Throwable) {
+                Timber.e("Can't parse date string from $date")
+                ""
+            }
             Text(
-                text = dateDetail.dateString,
+                text = dateString,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colors.onSecondary
@@ -69,9 +77,7 @@ fun PreviewDailyDetailTitle() {
         Surface {
             DailyDetailTitle(
                 expenses = listOf(IndividualExpense(amount = 20333.04)),
-                dateDetail = ExpenseInfoItem.ExpenseDateDetail(
-                    LocalDate.now()
-                )
+                date = LocalDate.now()
             )
         }
     }

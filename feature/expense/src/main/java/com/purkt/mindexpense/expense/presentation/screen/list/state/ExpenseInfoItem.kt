@@ -12,13 +12,4 @@ sealed class ExpenseInfoItem {
     class ExpenseCardDetail(val expense: IndividualExpense, isExpanded: Boolean = false) : ExpenseInfoItem() {
         var isExpanded by mutableStateOf(isExpanded)
     }
-
-    class ExpenseDateDetail(val date: LocalDate) : ExpenseInfoItem() {
-        val dateString: String = try {
-            DateTimeFormatter.ofPattern("eee, MMM d, yyyy").format(date)
-        } catch (e: Throwable) {
-            Timber.e("Can't parse date string from $date")
-            ""
-        }
-    }
 }

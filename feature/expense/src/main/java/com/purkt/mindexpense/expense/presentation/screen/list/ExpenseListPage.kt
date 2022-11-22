@@ -28,20 +28,16 @@ import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.domain.model.ExpenseListMode
 import com.purkt.mindexpense.expense.domain.model.ExpenseListResult
 import com.purkt.mindexpense.expense.presentation.screen.additem.ExpenseAddActivity
-import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyDetailTitle
-import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseCardInfo
+import com.purkt.mindexpense.expense.presentation.screen.list.component.DailyExpensesDetail
 import com.purkt.mindexpense.expense.presentation.screen.list.component.ExpenseListModeSelector
 import com.purkt.mindexpense.expense.presentation.screen.list.component.MonthRangeBox
-import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseInfoItem
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseListPageUiState
 import com.purkt.model.domain.model.DailyExpenses
-import com.purkt.model.domain.model.ExpenseSummary
 import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.ui.presentation.button.ui.component.TotalAmountBox
 import com.purkt.ui.presentation.button.ui.theme.MindExpenseTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.Month
 import java.util.*
 
 @Composable
@@ -183,7 +179,7 @@ private fun BaseExpenseListPage(
                     targetState = expenseListResult
                 ) { result ->
                     when (result) {
-                        ExpenseListResult.EmptyResult -> {
+                        ExpenseListResult.EMPTY -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -197,7 +193,7 @@ private fun BaseExpenseListPage(
                                 )
                             }
                         }
-                        ExpenseListResult.Loading -> {
+                        ExpenseListResult.LOADING -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -207,34 +203,23 @@ private fun BaseExpenseListPage(
                                 )
                             }
                         }
-                        is ExpenseListResult.ResultWithData -> {
-                            val summary = result.summary
+                        ExpenseListResult.FOUND -> {
+                            val dailyExpensesList = remember { uiState.dailyExpensesStateList }
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f)
                             ) {
-                                summary.expensesByDate.forEach { (localDate, dailyExpenses) ->
-                                    val dateDetail = ExpenseInfoItem.ExpenseDateDetail(localDate)
-                                    item {
-                                        Row(
-                                            modifier = Modifier.padding(24.dp)
-                                        ) {
-                                            DailyDetailTitle(
-                                                modifier = Modifier
-                                                    .align(Alignment.CenterVertically),
-                                                expenses = dailyExpenses.expenses,
-                                                dateDetail = dateDetail
-                                            )
+                                items(items = dailyExpensesList, key = { it.date.toEpochDay() }) {
+                                    DailyExpensesDetail(
+                                        dailyExpenses = it,
+                                        onEditExpense = { expenseId ->
+                                            startAddActivity(context, expenseId)
+                                        },
+                                        onDeleteExpense = { targetExpense ->
+                                            targetStateToDelete = targetExpense
                                         }
-                                    }
-                                    items(items = dailyExpenses.expenses, key = { it.id }) { expense ->
-                                        ExpenseCardInfo(
-                                            cardDetail = ExpenseInfoItem.ExpenseCardDetail(expense),
-                                            onEditExpense = { startAddActivity(context, expense.id) },
-                                            onDeleteCard = { targetStateToDelete = expense }
-                                        )
-                                    }
+                                    )
                                 }
                                 item {
                                     Spacer(modifier = Modifier.height(120.dp))
@@ -381,15 +366,11 @@ private fun PreviewExpenseScreenPageCommon() {
             )
         )
     )
-    val expenseSummary = ExpenseSummary(
-        expensesByDate = mockData,
-        startDate = LocalDate.of(2022, Month.JULY, 25),
-        endDate = LocalDate.of(2022, Month.AUGUST, 24)
-    )
     val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     val uiState = ExpenseListPageUiState().apply {
-        expenseListResultState.value = ExpenseListResult.ResultWithData(expenseSummary)
+        expenseListResultState.value = ExpenseListResult.FOUND
+        setNewList(mockData.values.toMutableStateList())
         totalAmountState.value = totalAmount
         totalCurrencyState.value = totalCurrency
         expenseListModeState.value = ExpenseListMode.INDIVIDUAL
@@ -461,15 +442,11 @@ private fun PreviewExpenseScreenPageMonthly() {
             )
         )
     )
-    val expenseSummary = ExpenseSummary(
-        expensesByDate = mockData,
-        startDate = LocalDate.of(2022, Month.JULY, 25),
-        endDate = LocalDate.of(2022, Month.AUGUST, 24)
-    )
     val totalAmount = mockData.values.sumOf { it.getTotalAmount() }
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     val uiState = ExpenseListPageUiState().apply {
-        expenseListResultState.value = ExpenseListResult.ResultWithData(expenseSummary)
+        expenseListResultState.value = ExpenseListResult.FOUND
+        setNewList(mockData.values.toMutableStateList())
         totalAmountState.value = totalAmount
         totalCurrencyState.value = totalCurrency
         expenseListModeState.value = ExpenseListMode.MONTHLY
@@ -483,13 +460,8 @@ private fun PreviewExpenseScreenPageMonthly() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewExpenseScreenPageEmpty() {
-    val expenseSummary = ExpenseSummary(
-        expensesByDate = mutableMapOf(),
-        startDate = LocalDate.of(2022, Month.JULY, 25),
-        endDate = LocalDate.of(2022, Month.AUGUST, 24)
-    )
     val uiState = ExpenseListPageUiState().apply {
-        expenseListResultState.value = ExpenseListResult.ResultWithData(expenseSummary)
+        expenseListResultState.value = ExpenseListResult.EMPTY
         totalAmountState.value = 0.0
         totalCurrencyState.value = "THB"
         expenseListModeState.value = ExpenseListMode.INDIVIDUAL
