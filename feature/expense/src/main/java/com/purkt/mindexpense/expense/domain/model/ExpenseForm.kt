@@ -39,7 +39,7 @@ class ExpenseForm(
      * @return Return true if [title] is valid. Otherwise, return false.
      */
     fun isTitleValid(): Boolean {
-        return title.matches(Regex("^[^\\s]+[^\\s]*\$"))
+        return title.matches(Regex("(^\\S.*\\S\$)|(\\S)"))
     }
 
     /**
