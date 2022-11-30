@@ -22,7 +22,7 @@ fun NormalEditText(
     label: String = "",
     placeholder: String = "",
     isReadOnly: Boolean = false,
-    isError: Boolean = false
+    isError: Boolean = false,
 ) {
     val baseColors = if (isError) {
         TextFieldDefaults.textFieldColors(

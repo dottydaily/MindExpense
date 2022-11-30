@@ -3,6 +3,7 @@ package com.purkt.mindexpense.expense.presentation.screen.additem
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.purkt.mindexpense.expense.R
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
@@ -38,6 +40,7 @@ fun ExpenseAddPage(
     onClose: () -> Unit
 ) {
     LaunchedEffect(Unit) {
+        viewModel.loadAllExpenses()
         targetExpenseId?.let {
             viewModel.loadExpenseId(it)
         }
@@ -51,7 +54,9 @@ fun ExpenseAddPage(
         onGetDateString = viewModel::getDateString,
         onGetTimeString = viewModel::getTimeString,
         onClickBackButton = onClose,
-        onClickSaveButton = viewModel::saveExpense
+        onClickSaveButton = viewModel::saveExpense,
+        onLoadTitleSuggestion = viewModel::loadTitleSuggestion,
+        onLoadDescriptionSuggestion = viewModel::loadDescriptionSuggestion
     )
 }
 
@@ -63,7 +68,9 @@ private fun BaseExpenseAddPage(
     onGetDateString: (dayOfMonth: Int, monthValue: Int, year: Int) -> String? = { _, _, _ -> "" },
     onGetTimeString: (hourOfDay: Int, minute: Int) -> String? = { _, _ -> "" },
     onClickBackButton: () -> Unit = {},
-    onClickSaveButton: (ExpenseAddInfoState) -> Unit = {}
+    onClickSaveButton: (ExpenseAddInfoState) -> Unit = {},
+    onLoadTitleSuggestion: (keyword: String) -> Unit = {},
+    onLoadDescriptionSuggestion: (keyword: String) -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
     when (addExpenseStatus) {
@@ -93,6 +100,8 @@ private fun BaseExpenseAddPage(
                 .wrapContentHeight()
                 .padding(horizontal = 24.dp)
         ) {
+            var isExpandedTitleSuggestion by remember { mutableStateOf(true) }
+            var isExpandedDescriptionSuggestion by remember { mutableStateOf(true) }
             Text(
                 modifier = Modifier
                     .paddingFromBaseline(top = 96.dp),
@@ -111,14 +120,41 @@ private fun BaseExpenseAddPage(
                     Spacer(modifier = Modifier.height(24.dp))
                 }
                 item {
-                    NormalEditText(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        value = addInfo.title,
-                        onValueChange = { addInfo.title = it },
-                        label = stringResource(id = R.string.expense_label_title),
-                        isError = addInfo.isTitleInvalid.value
-                    )
+                            .fillMaxWidth()
+                            .wrapContentHeight(Alignment.Top)
+                            .animateContentSize()
+                    ) {
+                        NormalEditText(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            value = addInfo.title,
+                            onValueChange = {
+                                addInfo.title = it
+                                isExpandedTitleSuggestion = true
+                                onLoadTitleSuggestion.invoke(it)
+                            },
+                            label = stringResource(id = R.string.expense_label_title),
+                            isError = addInfo.isTitleInvalid.value
+                        )
+                        DropdownMenu(
+                            expanded = isExpandedTitleSuggestion,
+                            onDismissRequest = { isExpandedTitleSuggestion = false },
+                            properties = PopupProperties(focusable = false)
+                        ) {
+                            addInfo.titleSuggestions.forEach {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        addInfo.title = it
+                                        isExpandedTitleSuggestion = false
+                                    }
+                                ) {
+                                    Text(it)
+                                }
+                            }
+                        }
+                    }
                 }
                 if (addInfo.isTitleInvalid.value) {
                     item {
@@ -130,13 +166,40 @@ private fun BaseExpenseAddPage(
                     }
                 }
                 item {
-                    NormalEditText(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        value = addInfo.description,
-                        onValueChange = { addInfo.description = it },
-                        label = stringResource(id = R.string.expense_label_description)
-                    )
+                            .fillMaxWidth()
+                            .wrapContentHeight(Alignment.Top)
+                            .animateContentSize()
+                    ) {
+                        NormalEditText(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            value = addInfo.description,
+                            onValueChange = {
+                                addInfo.description = it
+                                isExpandedDescriptionSuggestion = true
+                                onLoadDescriptionSuggestion.invoke(it)
+                            },
+                            label = stringResource(id = R.string.expense_label_description)
+                        )
+                        DropdownMenu(
+                            expanded = isExpandedDescriptionSuggestion,
+                            onDismissRequest = { isExpandedDescriptionSuggestion = false },
+                            properties = PopupProperties(focusable = false)
+                        ) {
+                            addInfo.descriptionSuggestions.forEach {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        addInfo.description = it
+                                        isExpandedDescriptionSuggestion = false
+                                    }
+                                ) {
+                                    Text(it)
+                                }
+                            }
+                        }
+                    }
                 }
                 item {
                     NumberEditText(
@@ -315,6 +378,23 @@ private fun PreviewExpenseAddPageShowError() {
     val addInfo = ExpenseAddInfoState().apply {
         isTitleInvalid.value = true
         isAmountInvalid.value = true
+    }
+    MindExpenseTheme {
+        BaseExpenseAddPage(
+            addInfo = addInfo,
+            addExpenseStatus = AddExpenseStatus.Idle
+        )
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewExpenseAddPageShowTitleSuggestion() {
+    val addInfo = ExpenseAddInfoState().apply {
+        isTitleInvalid.value = true
+        isAmountInvalid.value = true
+        setNewTitleSuggestions(listOf("A", "B", "C", "D"))
     }
     MindExpenseTheme {
         BaseExpenseAddPage(

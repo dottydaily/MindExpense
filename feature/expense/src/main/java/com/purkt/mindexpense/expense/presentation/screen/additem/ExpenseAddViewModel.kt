@@ -6,13 +6,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
 import com.purkt.database.domain.usecase.individualexpense.AddIndividualExpenseUseCase
+import com.purkt.database.domain.usecase.individualexpense.FindAllIndividualExpensesUseCase
 import com.purkt.database.domain.usecase.individualexpense.FindIndividualExpenseByIdUseCase
 import com.purkt.database.domain.usecase.individualexpense.UpdateIndividualExpenseUseCase
 import com.purkt.mindexpense.expense.domain.model.ExpenseForm
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.AddExpenseStatus
 import com.purkt.mindexpense.expense.presentation.screen.additem.state.ExpenseAddInfoState
+import com.purkt.model.domain.model.IndividualExpense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.DecimalFormat
@@ -27,15 +30,79 @@ import javax.inject.Inject
 class ExpenseAddViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val findIndividualExpenseByIdUseCase: FindIndividualExpenseByIdUseCase,
+    private val findAllIndividualExpensesUseCase: FindAllIndividualExpensesUseCase,
     private val addIndividualExpenseUseCase: AddIndividualExpenseUseCase,
     private val updateIndividualExpenseUseCase: UpdateIndividualExpenseUseCase
 ) : ViewModel() {
+    private val expenseList = mutableListOf<IndividualExpense>()
+
     var addInfo = mutableStateOf(ExpenseAddInfoState())
 
     private val _addStatusState = mutableStateOf<AddExpenseStatus>(AddExpenseStatus.Idle)
     val addStatusState: State<AddExpenseStatus> = _addStatusState
 
     private var isUpdatedExpense: Boolean = false
+
+    fun loadAllExpenses() = viewModelScope.launch(ioDispatcher) {
+        if (expenseList.isEmpty()) {
+            val flow = findAllIndividualExpensesUseCase.invoke()
+            flow.catch { e -> Timber.e("Can't get all expenses for suggestion : ${e.message}") }
+                .collect {
+                    expenseList.run {
+                        clear()
+                        addAll(it)
+                    }
+                }
+        }
+    }
+
+    fun loadTitleSuggestion(keyword: String) = viewModelScope.launch(ioDispatcher) {
+        if (keyword.isBlank()) {
+            addInfo.value.setNewTitleSuggestions(emptyList())
+        } else {
+            val titleMapByCount = mutableMapOf<String, Int>()
+            expenseList.forEach {
+                if (titleMapByCount[it.title] == null) {
+                    titleMapByCount[it.title] = 1
+                } else {
+                    titleMapByCount[it.title] = titleMapByCount[it.title]!! + 1
+                }
+            }
+            var filteredTitles = titleMapByCount
+                .filterKeys { it.contains(keyword) }
+                .toList()
+                .sortedByDescending { it.second }
+                .map { it.first }
+                .distinct()
+            if (filteredTitles.size > 3) filteredTitles = filteredTitles.subList(0, 3)
+
+            addInfo.value.setNewTitleSuggestions(filteredTitles)
+        }
+    }
+
+    fun loadDescriptionSuggestion(keyword: String) = viewModelScope.launch(ioDispatcher) {
+        if (keyword.isBlank()) {
+            addInfo.value.setNewDescriptionSuggestions(emptyList())
+        } else {
+            val descriptionMapByCount = mutableMapOf<String, Int>()
+            expenseList.forEach {
+                if (descriptionMapByCount[it.description] == null) {
+                    descriptionMapByCount[it.description] = 1
+                } else {
+                    descriptionMapByCount[it.description] = descriptionMapByCount[it.description]!! + 1
+                }
+            }
+            var filteredDescription = descriptionMapByCount
+                .filterKeys { it.contains(keyword) }
+                .toList()
+                .sortedByDescending { it.second }
+                .map { it.first }
+                .distinct()
+            if (filteredDescription.size > 3) filteredDescription = filteredDescription.subList(0, 3)
+
+            addInfo.value.setNewDescriptionSuggestions(filteredDescription)
+        }
+    }
 
     fun loadExpenseId(id: Int) = viewModelScope.launch(ioDispatcher) {
         val target = findIndividualExpenseByIdUseCase.invoke(id)

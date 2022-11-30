@@ -1,6 +1,7 @@
 package com.purkt.mindexpense.expense.presentation.screen.additem.state
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import java.time.LocalDateTime
@@ -20,6 +21,12 @@ class ExpenseAddInfoState {
     var isTitleInvalid = mutableStateOf(false)
     var isAmountInvalid = mutableStateOf(false)
 
+    private val _titleSuggestions = mutableStateListOf<String>()
+    val titleSuggestions: List<String> = _titleSuggestions
+
+    private val _descriptionSuggestions = mutableStateListOf<String>()
+    val descriptionSuggestions: List<String> = _descriptionSuggestions
+
     init {
         val dateTime = LocalDateTime.now()
         val dateFormatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
@@ -31,5 +38,19 @@ class ExpenseAddInfoState {
     fun getLocalDateTime(): LocalDateTime {
         val formatter = DateTimeFormatter.ofPattern("$DATE_PATTERN $TIME_PATTERN")
         return LocalDateTime.parse("$date $time", formatter)
+    }
+
+    fun setNewTitleSuggestions(newList: Collection<String>) {
+        _titleSuggestions.run {
+            clear()
+            addAll(newList)
+        }
+    }
+
+    fun setNewDescriptionSuggestions(newList: Collection<String>) {
+        _descriptionSuggestions.run {
+            clear()
+            addAll(newList)
+        }
     }
 }
