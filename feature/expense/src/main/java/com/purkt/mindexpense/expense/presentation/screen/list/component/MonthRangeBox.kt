@@ -1,10 +1,7 @@
 package com.purkt.mindexpense.expense.presentation.screen.list.component
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowLeft
@@ -27,6 +24,8 @@ fun MonthRangeBox(
     startDate: LocalDate,
     endDate: LocalDate,
     contentColor: Color = MaterialTheme.colors.onSurface,
+    isShowLeftButton: Boolean = true,
+    isShowRightButton: Boolean = true,
     onClickLeftArrow: () -> Unit = {},
     onClickRightArrow: () -> Unit = {}
 ) {
@@ -39,12 +38,20 @@ fun MonthRangeBox(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        IconButton(onClick = onClickLeftArrow) {
-            Icon(
-                modifier = Modifier.size(32.dp),
-                tint = contentColor,
-                imageVector = Icons.Filled.ArrowLeft,
-                contentDescription = "Back to previous month"
+        if (isShowLeftButton) {
+            IconButton(onClick = onClickLeftArrow) {
+                Icon(
+                    modifier = Modifier.size(32.dp),
+                    tint = contentColor,
+                    imageVector = Icons.Filled.ArrowLeft,
+                    contentDescription = "Back to previous month"
+                )
+            }
+        } else {
+            Spacer(
+                modifier = Modifier
+                    .width(24.dp)
+                    .height(48.dp)
             )
         }
         Text(
@@ -53,12 +60,20 @@ fun MonthRangeBox(
             fontSize = 16.sp,
             color = contentColor
         )
-        IconButton(onClick = onClickRightArrow) {
-            Icon(
-                modifier = Modifier.size(32.dp),
-                tint = contentColor,
-                imageVector = Icons.Filled.ArrowRight,
-                contentDescription = "Back to previous month"
+        if (isShowRightButton) {
+            IconButton(onClick = onClickRightArrow) {
+                Icon(
+                    modifier = Modifier.size(32.dp),
+                    tint = contentColor,
+                    imageVector = Icons.Filled.ArrowRight,
+                    contentDescription = "Back to previous month"
+                )
+            }
+        } else {
+            Spacer(
+                modifier = Modifier
+                    .width(24.dp)
+                    .height(48.dp)
             )
         }
     }
@@ -73,6 +88,52 @@ fun PreviewMonthRangeBox() {
             MonthRangeBox(
                 startDate = LocalDate.of(2022, 7, 25),
                 endDate = LocalDate.of(2022, 8, 24)
+            )
+        }
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewMonthRangeBoxHideLeftButton() {
+    MindExpenseTheme {
+        Surface {
+            MonthRangeBox(
+                startDate = LocalDate.of(2022, 7, 25),
+                endDate = LocalDate.of(2022, 8, 24),
+                isShowLeftButton = false
+            )
+        }
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewMonthRangeBoxHideRightButton() {
+    MindExpenseTheme {
+        Surface {
+            MonthRangeBox(
+                startDate = LocalDate.of(2022, 7, 25),
+                endDate = LocalDate.of(2022, 8, 24),
+                isShowRightButton = false
+            )
+        }
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewMonthRangeBoxHideBothButtons() {
+    MindExpenseTheme {
+        Surface {
+            MonthRangeBox(
+                startDate = LocalDate.of(2022, 7, 25),
+                endDate = LocalDate.of(2022, 8, 24),
+                isShowLeftButton = false,
+                isShowRightButton = false
             )
         }
     }

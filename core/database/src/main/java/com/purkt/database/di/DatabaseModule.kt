@@ -3,6 +3,7 @@ package com.purkt.database.di
 import android.content.Context
 import androidx.room.Room
 import com.purkt.database.data.MindExpenseDatabase
+import com.purkt.database.data.dao.DateRangeDao
 import com.purkt.database.data.dao.IndividualExpenseDao
 import com.purkt.database.data.dao.RecurringExpenseDao
 import dagger.Module
@@ -37,5 +38,12 @@ object DatabaseModule {
         mindExpenseDatabase: MindExpenseDatabase
     ): RecurringExpenseDao {
         return mindExpenseDatabase.recurringExpenseDao()
+    }
+
+    @Provides
+    fun provideDateRangeDao(
+        mindExpenseDatabase: MindExpenseDatabase
+    ): DateRangeDao {
+        return mindExpenseDatabase.dateRangeDao()
     }
 }

@@ -3,6 +3,8 @@ package com.purkt.mindexpense.expense.presentation.screen.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.purkt.common.di.IoDispatcher
+import com.purkt.database.domain.usecase.daterange.AddDateRangeUseCase
+import com.purkt.database.domain.usecase.daterange.FindAllDateRangeUseCase
 import com.purkt.database.domain.usecase.individualexpense.DeleteIndividualExpenseUseCase
 import com.purkt.database.domain.usecase.individualexpense.FindAllIndividualExpensesUseCase
 import com.purkt.database.domain.usecase.recurringexpense.FindAllRecurringExpensesUseCase
@@ -11,6 +13,7 @@ import com.purkt.mindexpense.expense.domain.model.ExpenseListMode
 import com.purkt.mindexpense.expense.domain.model.ExpenseListResult
 import com.purkt.mindexpense.expense.presentation.screen.list.state.ExpenseListPageUiState
 import com.purkt.model.domain.model.DailyExpenses
+import com.purkt.model.domain.model.DateRange
 import com.purkt.model.domain.model.IndividualExpense
 import com.purkt.model.domain.model.RecurringExpense
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,31 +30,102 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpenseListViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val addDateRangeUseCase: AddDateRangeUseCase,
+    private val findAllDateRangeUseCase: FindAllDateRangeUseCase,
     private val findAllIndividualExpensesUseCase: FindAllIndividualExpensesUseCase,
     private val findAllRecurringExpensesUseCase: FindAllRecurringExpensesUseCase,
     private val deleteIndividualExpenseUseCase: DeleteIndividualExpenseUseCase
 ) : ViewModel() {
+    private val _dateRangeList = mutableListOf<DateRange>()
     private var isLoading = true
 
     // Date related
     private var startDayEachMonth = 25
 
+    /**
+     * A [List] of all [DateRange] from database.
+     */
+    val dateRangeList: List<DateRange> = _dateRangeList
+
     val uiState = ExpenseListPageUiState()
 
     init {
-        uiState.apply {
-            val startDate = LocalDate.now().run {
-                var targetDate = this
-                if (dayOfMonth < startDayEachMonth) {
-                    targetDate = targetDate.minusMonths(1)
+        viewModelScope.launch {
+            val allDateRanges = withContext(ioDispatcher) {
+                findAllDateRangeUseCase.invoke().firstOrNull()
+            } ?: emptyList()
+
+            if (allDateRanges.isEmpty()) {
+                val startDate = LocalDate.now().run {
+                    withDayOfMonth(1)
                 }
-                targetDate = targetDate.withDayOfMonth(startDayEachMonth)
-                targetDate
+                val endDate = startDate.with(TemporalAdjusters.lastDayOfMonth())
+                val initialDateRange = DateRange(
+                    id = 1,
+                    startDate = startDate,
+                    endDate = endDate
+                )
+                val isAdded = withContext(ioDispatcher) {
+                    addDateRangeUseCase.invoke(initialDateRange)
+                }
+                if (isAdded) {
+                    addDateRange(initialDateRange)
+                    uiState.run {
+                        isShowDateRangeLeftButtonState.value = false
+                        isShowDateRangeRightButtonState.value = false
+                        currentDateRangeState.value = initialDateRange
+                    }
+                }
+            } else {
+                val today = LocalDate.now()
+                val isNeedToCreateNewDateRange = allDateRanges.none {
+                    today.isLocalDateInRangeOf(it.startDate, it.endDate)
+                }
+
+                if (isNeedToCreateNewDateRange) {
+                    val startDate = today.withDayOfMonth(1)
+                    val endDate = startDate.with(TemporalAdjusters.lastDayOfMonth())
+                    val newDateRange = DateRange(
+                        id = allDateRanges.maxOf { it.id } + 1,
+                        startDate = startDate,
+                        endDate = endDate
+                    )
+                    val isAdded = withContext(ioDispatcher) {
+                        addDateRangeUseCase.invoke(newDateRange)
+                    }
+                    if (isAdded) {
+                        uiState.apply {
+                            val resultList = allDateRanges + newDateRange
+                            val allDateRangeTypedArray = resultList.toTypedArray()
+                            addDateRange(*allDateRangeTypedArray)
+
+                            val targetDateRange = dateRangeList.last()
+                            isShowDateRangeRightButtonState.value = false
+                            currentDateRangeState.value = targetDateRange
+                        }
+                    }
+                } else {
+                    uiState.apply {
+                        val allDateRangeTypedArray = allDateRanges.toTypedArray()
+                        addDateRange(*allDateRangeTypedArray)
+
+                        val targetDateRange = dateRangeList.last()
+                        isShowDateRangeRightButtonState.value = false
+                        currentDateRangeState.value = targetDateRange
+                    }
+                }
             }
-            val endDate = startDate.plusMonths(1).minusDays(1)
-            startDateState.value = startDate
-            endDateState.value = endDate
-            isInitializedState.value = true
+
+            fetchAllExpenses()
+            uiState.isInitializedState.value = true
+        }
+    }
+
+    private fun addDateRange(vararg dateRanges: DateRange) {
+        _dateRangeList.run {
+            addAll(dateRanges)
+            sortBy { it.endDate }
+            sortBy { it.startDate }
         }
     }
 
@@ -112,7 +186,7 @@ class ExpenseListViewModel @Inject constructor(
                 val isDeleted = deleteIndividualExpenseUseCase.invoke(targetExpense)
                 if (isDeleted) {
                     // Remove expense from the target daily expenses
-                    uiState.remove(targetExpense)
+                    uiState.removeExpense(targetExpense)
 
                     // Update each information
                     val newTotalAmount = stateList.sumOf { dailyExpense ->
@@ -158,23 +232,39 @@ class ExpenseListViewModel @Inject constructor(
         }
     }
 
-    fun fetchPreviousMonth() {
+    fun fetchPreviousDateRange() {
         if (!isLoading) {
             uiState.apply {
-                startDateState.value = startDateState.value.minusMonths(1)
-                endDateState.value = endDateState.value.minusMonths(1)
+                val currentIndex = dateRangeList.indexOf(currentDateRangeState.value)
+                if (currentIndex > 0) {
+                    val isFirstIndex = currentIndex - 1 == 0
+                    val findTargetDateRange = dateRangeList[currentIndex - 1]
+                    findTargetDateRange.let {
+                        currentDateRangeState.value = it
+                        isShowDateRangeRightButtonState.value = true
+                        isShowDateRangeLeftButtonState.value = !isFirstIndex
+                        fetchAllExpenses()
+                    }
+                }
             }
-            fetchAllExpenses()
         }
     }
 
-    fun fetchNextMonth() {
+    fun fetchNextDateRange() {
         if (!isLoading) {
             uiState.apply {
-                startDateState.value = startDateState.value.plusMonths(1)
-                endDateState.value = endDateState.value.plusMonths(1)
+                val currentIndex = dateRangeList.indexOf(currentDateRangeState.value)
+                if (currentIndex < dateRangeList.lastIndex) {
+                    val isLastIndex = (currentIndex + 1) == dateRangeList.lastIndex
+                    val findTargetDateRange = dateRangeList[currentIndex + 1]
+                    findTargetDateRange.let {
+                        currentDateRangeState.value = it
+                        isShowDateRangeLeftButtonState.value = true
+                        isShowDateRangeRightButtonState.value = !isLastIndex
+                        fetchAllExpenses()
+                    }
+                }
             }
-            fetchAllExpenses()
         }
     }
 
@@ -189,8 +279,8 @@ class ExpenseListViewModel @Inject constructor(
                     )
                 }
 
-            val startDate = uiState.startDateState.value
-            val endDate = uiState.endDateState.value
+            val startDate = uiState.currentDateRangeState.value.startDate
+            val endDate = uiState.currentDateRangeState.value.endDate
             val filteredExpenses = expensesGroupByDate
                 .filterKeys { it.isLocalDateInRangeOf(startDate, endDate) }
                 .values
@@ -225,17 +315,12 @@ class ExpenseListViewModel @Inject constructor(
                     }
                 } else {
                     // create the new expense group by date
-                    val baseNewDate = if (recurringExpense.dayOfMonth < startDayEachMonth) {
-                        uiState.startDateState.value.plusMonths(1)
-                    } else {
-                        uiState.startDateState.value
-                    }
+                    val currentDateRange = uiState.currentDateRangeState.value
                     val newDate = try {
-                        baseNewDate.withDayOfMonth(recurringExpense.dayOfMonth)
+                            currentDateRange.startDate.withDayOfMonth(recurringExpense.dayOfMonth)
                     } catch (e: DateTimeException) {
                         Timber.e("Can't create new expense group by new date: ${e.message}")
-                        // create new date with last day of month instead
-                        baseNewDate.with(TemporalAdjusters.lastDayOfMonth())
+                        currentDateRange.endDate
                     }
 
                     val convertedExpense = recurringExpense.mapToIndividualExpense(
@@ -285,7 +370,7 @@ class ExpenseListViewModel @Inject constructor(
                     expenseListResultState.value = ExpenseListResult.FOUND
                 }
             }
-            uiState.setNewList(dailyExpensesList)
+            uiState.setNewExpensesList(dailyExpensesList)
         }
     }
 }

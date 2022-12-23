@@ -8,6 +8,7 @@ import com.purkt.mindexpense.expense.domain.model.DeleteExpenseStatus
 import com.purkt.mindexpense.expense.domain.model.ExpenseListMode
 import com.purkt.mindexpense.expense.domain.model.ExpenseListResult
 import com.purkt.model.domain.model.DailyExpenses
+import com.purkt.model.domain.model.DateRange
 import com.purkt.model.domain.model.IndividualExpense
 import java.time.LocalDate
 
@@ -62,10 +63,25 @@ class ExpenseListPageUiState {
     val dailyExpensesStateList: List<DailyExpenses> = _dailyExpensesStateList
 
     /**
+     * A [MutableState] of the current date range.
+     */
+    val currentDateRangeState = mutableStateOf(DateRange(0, LocalDate.now(), LocalDate.now()))
+
+    /**
+     * A [MutableState] of the show status of the left button on the date range UI.
+     */
+    val isShowDateRangeLeftButtonState = mutableStateOf(true)
+
+    /**
+     * A [MutableState] of the show status of the right button on the date range UI.
+     */
+    val isShowDateRangeRightButtonState = mutableStateOf(true)
+
+    /**
      * Replace the [newList] with the current [dailyExpensesStateList]
      * @param newList The target new list of [DailyExpenses] to be replaced with the current state list.
      */
-    fun setNewList(newList: List<DailyExpenses>) {
+    fun setNewExpensesList(newList: List<DailyExpenses>) {
         _dailyExpensesStateList.run {
             clear()
             addAll(newList)
@@ -76,7 +92,7 @@ class ExpenseListPageUiState {
      * Remove the [expense] from the [dailyExpensesStateList]
      * @param expense The target [IndividualExpense] to be deleted from the state list.
      */
-    fun remove(expense: IndividualExpense) {
+    fun removeExpense(expense: IndividualExpense) {
         _dailyExpensesStateList.apply {
             val targetDailyExpenses = find { it.date == expense.dateTime.toLocalDate() } ?: return
             val newExpenseList = targetDailyExpenses.expenses.toMutableList().apply {

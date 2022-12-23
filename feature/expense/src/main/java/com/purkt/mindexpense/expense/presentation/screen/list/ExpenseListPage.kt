@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -88,8 +87,8 @@ fun ExpenseListPage(
         onSelectIndividualListMode = viewModel::setListModeToCommon,
         onSelectMonthlyListMode = viewModel::setListModeToMonthly,
         onDeleteCard = viewModel::deleteExpense,
-        onChoosePreviousMonth = viewModel::fetchPreviousMonth,
-        onChooseNextMonth = viewModel::fetchNextMonth
+        onChoosePreviousMonth = viewModel::fetchPreviousDateRange,
+        onChooseNextMonth = viewModel::fetchNextDateRange
     )
 }
 
@@ -131,7 +130,7 @@ private fun BaseExpenseListPage(
                 }
             }
         ) { padding ->
-            val isInitialized by remember { uiState.isInitializedState }
+            val isInitialized by uiState.isInitializedState
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -142,10 +141,10 @@ private fun BaseExpenseListPage(
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    val listMode by remember { uiState.expenseListModeState }
-                    val expenseListResult by remember { uiState.expenseListResultState }
-                    val totalAmount by remember { uiState.totalAmountState }
-                    val totalCurrency by remember { uiState.totalCurrencyState }
+                    val listMode by uiState.expenseListModeState
+                    val expenseListResult by uiState.expenseListResultState
+                    val totalAmount by uiState.totalAmountState
+                    val totalCurrency by uiState.totalCurrencyState
                     TotalAmountBox(
                         modifier = Modifier
                             .padding(top = 16.dp)
@@ -238,12 +237,19 @@ private fun BaseExpenseListPage(
                             elevation = 2.dp
                         ) {
                             if (isInitialized) {
-                                val startDate by remember { uiState.startDateState }
-                                val endDate by remember { uiState.endDateState }
+                                val currentDateRange by uiState.currentDateRangeState
+                                val startDate = currentDateRange.startDate
+                                val endDate = currentDateRange.endDate
+                                val isShowLeftButton by uiState.isShowDateRangeLeftButtonState
+                                val isShowRightButton by uiState.isShowDateRangeRightButtonState
                                 MonthRangeBox(
+                                    modifier = Modifier
+                                        .animateContentSize(),
                                     startDate = startDate,
                                     endDate = endDate,
                                     contentColor = MaterialTheme.colors.onPrimary,
+                                    isShowLeftButton = isShowLeftButton,
+                                    isShowRightButton = isShowRightButton,
                                     onClickLeftArrow = onChoosePreviousMonth,
                                     onClickRightArrow = onChooseNextMonth
                                 )
@@ -365,7 +371,7 @@ private fun PreviewExpenseScreenPageCommon() {
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     val uiState = ExpenseListPageUiState().apply {
         expenseListResultState.value = ExpenseListResult.FOUND
-        setNewList(mockData.values.toMutableStateList())
+        setNewExpensesList(mockData.values.toMutableStateList())
         totalAmountState.value = totalAmount
         totalCurrencyState.value = totalCurrency
         expenseListModeState.value = ExpenseListMode.INDIVIDUAL
@@ -442,7 +448,7 @@ private fun PreviewExpenseScreenPageMonthly() {
     val totalCurrency = mockData.values.firstOrNull()?.expenses?.firstOrNull()?.currency?.currencyCode ?: ""
     val uiState = ExpenseListPageUiState().apply {
         expenseListResultState.value = ExpenseListResult.FOUND
-        setNewList(mockData.values.toMutableStateList())
+        setNewExpensesList(mockData.values.toMutableStateList())
         totalAmountState.value = totalAmount
         totalCurrencyState.value = totalCurrency
         expenseListModeState.value = ExpenseListMode.MONTHLY
